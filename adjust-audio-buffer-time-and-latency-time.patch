@@ -1,0 +1,14 @@
+diff -Nur gst-plugins-base-0.10.32/gst-libs/gst/audio/gstbaseaudiosink.c gst-plugins-base-0.10.32-new/gst-libs/gst/audio/gstbaseaudiosink.c
+--- gst-plugins-base-0.10.32/gst-libs/gst/audio/gstbaseaudiosink.c	2011-01-03 01:21:03.000000000 +0800
++++ gst-plugins-base-0.10.32-new/gst-libs/gst/audio/gstbaseaudiosink.c	2011-05-06 16:04:58.033343414 +0800
+@@ -81,8 +81,8 @@
+ #define DIFF_TOLERANCE  2
+ 
+ /* FIXME: 0.11, store the buffer_time and latency_time in nanoseconds */
+-#define DEFAULT_BUFFER_TIME     ((200 * GST_MSECOND) / GST_USECOND)
+-#define DEFAULT_LATENCY_TIME    ((10 * GST_MSECOND) / GST_USECOND)
++#define DEFAULT_BUFFER_TIME     ((600 * GST_MSECOND) / GST_USECOND)
++#define DEFAULT_LATENCY_TIME    ((200 * GST_MSECOND) / GST_USECOND)
+ #define DEFAULT_PROVIDE_CLOCK   TRUE
+ #define DEFAULT_SLAVE_METHOD    GST_BASE_AUDIO_SINK_SLAVE_SKEW
+ 

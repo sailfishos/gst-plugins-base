@@ -1,0 +1,113 @@
+* Fri Sep 02 2011 Carsten Munk <carsten@maemo.org> - 0.10.32
+- Drop gtk-doc dependancy
+
+* Fri May 13 2011 vivian zhang <vivian.zhang@intel.com> - 0.10.32
+- Adjust buffer-time to 600ms for reducing power and c0% (BMC #17213)
+
+* Fri May 06 2011 vivian zhang <vivian.zhang@intel.com> - 0.10.32
+- Adjust buffer-time and latency-time of pulsesink to improve pulseaudio performance (BMC 17213)
+
+* Sat Jan 22 2011 Ling Yue <ling.yue@intel.com> - 0.10.32
+- Update to the latest version (FEA #10764)
+
+* Mon Jan 17 2011 Ling Yue <ling.yue@intel.com> - 0.10.32
+- Update to the latest version (0.10.31.4) (FEA #10764)
+
+* Thu Dec 09 2010 Ling Yue <ling.yue@intel.com> - 0.10.31
+- Use spectacle new fix to solve %ifarch for --with-audioresample-format
+
+* Thu Dec 02 2010 Topi Santakivi <topi.santakivi@digia.com> - 0.10.31
+- Update to the latest upstream version (FEA #10764)
+- Added gst-discoverer + three headers to the files section
+
+* Wed Oct 27 2010 Anas Nashif <anas.nashif@intel.com> - 0.10.30
+- Remove dependency on gobject-introspection
+
+* Fri Sep 03 2010 Ling Yue <ling.yue@intel.com> - 0.10.30
+- Fix gst-plugins-base part of BMC#6520
+- Rename subpackage from helper to tools
+- Configure options change: delete deprecate --disable-shave, add
+  --disable-nls	to reduce image size (no native language support) 
+  --with-audioresample-format=float for x86 and armv7 platform
+  --with-audioresample-format=int for armv5 platform
+
+* Tue Aug 10 2010 Ling Yue <ling.yue@intel.com> - 0.10.30
+- Use liborc instead of liboil as recommended
+
+* Thu Jul 29 2010 Ling Yue <ling.yue@intel.com> - 0.10.30
+- Upgrade to 0.10.30, but don't use orc first
+
+* Mon Jun 28 2010 Bin Gao <bin.gao@intel.com> 0.10.29
+- Remove unnecessary dependency libva and libva-x11
+
+* Wed Jun 09 2010 Anas Nashif <anas.nashif@intel.com> - 0.10.29
+- Split helper tools into a sub-package. Those pull perl for no good reason
+
+* Wed May 19 2010 Bin Gao <bin.gao@intel.com> 0.10.29
+- Update to 0.10.29 and this fixes BMC #24
+
+* Wed Mar 24 2010 Anas Nashif <anas.nashif@intel.com> - 0.10.28
+- Remove dependency on gtk and gnome-vfs
+
+* Thu Mar 18 2010 Damien Lespiau <damien.lespiau@intel.com> - 0.10.28
+- Build introspection data, need 2 patches that are going upstream
+- More accurate license
+- Remove unneeded BR on bison, check and flex
+- Rebuild API reference with the gtk-doc in the distro and package it
+  into a separate -doc package
+
+* Sat Mar 13 2010 Rusty Lynch <rusty.lynch@intel.com> - 0.10.28
+- Adding 0006-Porting-use-of-old-GstSubBuffer-to-GstBuffer-with-a.patch which
+  ports the original Fluendo patch for vaapi to stop using the new gone
+  GstSubBuffer class
+
+* Sat Mar 13 2010 Rusty Lynch <rusty.lynch@intel.com> - 0.10.28
+- release 0.10.28
+- ported packaging to spectacle
+- stopped using input selector patch since it appears from the previous 
+  changelog that the patch shouldn't be used anymore but was not removed 
+  in error
+- stopped using the "theoradec breaks timestamps" since this was fixed upstream
+- removed previously unapplied patches from the obs project 
+- Adding series of three patches applied to upstream immediately after the 0.10.28 
+  release which adds xvimage and ximage capabilities for supplying a blit rectangle
+- Adding 0005-Don-t-have-2-include-dirs.patch to fix install bug caused by xvimage patch
+
+* Wed Dec 02 2009 Bin Gao <bin.gao@intel.com> 0.10.25
+- Merge "theoradec breaks timestamps" patch which is
+  to fix bug #601627(gnome bugzilla)
+
+* Mon Nov 30 2009 Bin Gao <bin.gao@intel.com> 0.10.25
+- Update to 0.10.25
+
+* Fri Nov 13 2009 Bin Gao <bin.gao@intel.com> 0.10.24
+- Add libva support
+
+* Fri Aug 28 2009 Vivian Zhang <vivian.zhang@intel.com> 0.10.24
+- Update to 0.10.24
+- Drop input-selector patch, the input-selector has been removed to be an internal playbin2 plugin
+
+* Thu Apr 16 2009 Vivian Zhang <vivian.zhang@intel.com> 0.10.23
+- Update to 0.10.23
+- Remove patch CVE-2009-0586 since it has been merged into 0.10.23
+- Merge upstream patch to add input-selector plugin  (#506767) 
+
+* Tue Apr 07 2009 Passion Zhao <passion.zhao@intel.com> 0.10.22
+- Fix CVE-2009-0586
+
+* Thu Mar 19 2009 Anas Nashif <anas.nashif@intel.com> 0.10.22
+- Added Xv, libvisual dependencies: bug #1212
+
+* Sat Feb 14 2009 Vivian Zhang <vivian.zhang@intel.com> 0.10.22
+- Update to 0.10.22
+- Update file list
+
+* Tue Dec 16 2008 Anas Nashif <anas.nashif@intel.com> 0.10.21
+- Update spec file using latest spec-builder
+
+* Tue Dec 16 2008 Anas Nashif <anas.nashif@intel.com> 0.10.21
+- Update spec file using latest spec-builder
+
+* Thu Dec 08 2008 Rusty Lynch <rusty.lynch@intel.com> - 0.10.21-1
+- Creating a 0.10.21-1 release 
+

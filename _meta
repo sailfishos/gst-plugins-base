@@ -1,0 +1,7 @@
+<package project="Mer:Trunk:Base" name="gst-plugins-base">
+  <title>GStreamer streaming media framework base plug-ins</title>
+  <description>Description: %{summary}
+
+</description>
+  <url>http://gstreamer.freedesktop.org/</url>
+</package>
