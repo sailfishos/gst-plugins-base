@@ -1,3 +1,6 @@
+* Mon Nov 21 2011 Marko Saukko <marko.saukko@cybercom.com> - 0.10.35
+- Update to latest version of gst-plugins-base 0.10.x branch.
+
 * Fri Sep 02 2011 Carsten Munk <carsten@maemo.org> - 0.10.32
 - Drop gtk-doc dependancy
 
