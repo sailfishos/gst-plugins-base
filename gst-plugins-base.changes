@@ -1,3 +1,6 @@
+* Tue Oct 09 2012 Tuomas Kulve <tuomas@kulve.fi> - 0.10.36
+- Update to latest version of gst-plugins-base 0.10.x branch.
+
 * Mon Nov 21 2011 Marko Saukko <marko.saukko@cybercom.com> - 0.10.35
 - Update to latest version of gst-plugins-base 0.10.x branch.
 
