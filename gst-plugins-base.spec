@@ -157,7 +157,6 @@ rm -rf %{buildroot}
 %{_libdir}/gstreamer-0.10/libgstvideorate.so
 %{_libdir}/gstreamer-0.10/libgstvideoscale.so
 %{_libdir}/gstreamer-0.10/libgsttcp.so
-%{_libdir}/gstreamer-0.10/libgstvideo4linux.so
 %{_libdir}/gstreamer-0.10/libgstaudioresample.so
 %{_libdir}/gstreamer-0.10/libgstgdp.so
 %{_libdir}/gstreamer-0.10/libgstapp.so

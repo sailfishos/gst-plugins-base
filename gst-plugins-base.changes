@@ -1,3 +1,6 @@
+* Sat Jan 26 2013 Oleg Girko <ol+mer@infoserver.ru> - 0.10.36
+- Don't package v4l plugin which is not built with newer kernel-headers.
+
 * Tue Oct 09 2012 Tuomas Kulve <tuomas@kulve.fi> - 0.10.36
 - Update to latest version of gst-plugins-base 0.10.x branch.
 
