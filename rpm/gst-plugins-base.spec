@@ -15,7 +15,6 @@ BuildRequires: pkgconfig(gstreamer-1.0) >= %{gst_minver}
 BuildRequires: pkgconfig(orc-0.4)
 BuildRequires: pkgconfig(ogg)
 BuildRequires: pkgconfig(vorbis)
-BuildRequires: pkgconfig(alsa)
 BuildRequires: pkgconfig(libvisual-0.4)
 BuildRequires: pkgconfig(theora)
 BuildRequires: python
@@ -70,7 +69,8 @@ CFLAGS="$CFLAGS -mfpu=neon" \
   --enable-orc \
   --disable-x \
   --disable-xvideo \
-  --disable-xshm
+  --disable-xshm \
+  --disable-alsa
 
 make %{?jobs:-j%jobs}
 
@@ -123,7 +123,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/gstreamer-%{majorminor}/libgstapp.so
 %{_libdir}/gstreamer-%{majorminor}/libgstencodebin.so
 %{_libdir}/gstreamer-%{majorminor}/libgstsubparse.so
-%{_libdir}/gstreamer-%{majorminor}/libgstalsa.so
 %{_libdir}/gstreamer-%{majorminor}/libgsttheora.so
 %{_libdir}/gstreamer-%{majorminor}/libgstvorbis.so
 %{_libdir}/gstreamer-%{majorminor}/libgstogg.so
