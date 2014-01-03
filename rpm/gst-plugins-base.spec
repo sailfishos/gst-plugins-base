@@ -9,8 +9,6 @@ Group:      Applications/Multimedia
 License:    LGPLv2+
 URL:        http://gstreamer.freedesktop.org/
 Source0:    http://gstreamer.freedesktop.org/src/gst-plugins-base/%{name}-%{version}.tar.bz2
-Source100:  gst-plugins-base.yaml
-Patch0:     adjust-audio-buffer-time-and-latency-time.patch
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 BuildRequires:  pkgconfig(orc-0.4) >= 0.4.5
