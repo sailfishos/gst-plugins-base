@@ -52,13 +52,13 @@ Requires:   %{name} = %{version}-%{release}
 Separate sub-package contaning helper applications of gstreamer base plugins.
 
 
-%package doc
-Summary:    API reference for Gstreamer base plugins
-Group:      Documentation
-Requires:   %{name} = %{version}-%{release}
-
-%description doc
-Separate documentation sub-package for gstreamer base plugins.
+#%package doc
+#Summary:    API reference for Gstreamer base plugins
+#Group:      Documentation
+#Requires:   %{name} = %{version}-%{release}
+#
+#%description doc
+#Separate documentation sub-package for gstreamer base plugins.
 
 
 
@@ -267,8 +267,8 @@ rm -rf %{buildroot}
 %{_bindir}/gst-discoverer-0.10
 %{_mandir}/man1/gst-visualise-0.10*
 
-%files doc
-%defattr(-,root,root,-)
+# %files doc
+# %defattr(-,root,root,-)
 # gtk-doc documentation
-%doc %{_datadir}/gtk-doc/html/gst-plugins-base-libs-0.10
-%doc %{_datadir}/gtk-doc/html/gst-plugins-base-plugins-0.10
+# %doc %{_datadir}/gtk-doc/html/gst-plugins-base-libs-0.10
+# %doc %{_datadir}/gtk-doc/html/gst-plugins-base-plugins-0.10
