@@ -1,0 +1,17 @@
+* Sat Jan 26 2013 Oleg Girko <ol+mer@infoserver.ru> - 0.10.36
+- Don't package v4l plugin which is not built with newer kernel-headers.
+
+* Tue Oct 09 2012 Tuomas Kulve <tuomas@kulve.fi> - 0.10.36
+- Update to latest version of gst-plugins-base 0.10.x branch.
+
+* Mon Nov 21 2011 Marko Saukko <marko.saukko@cybercom.com> - 0.10.35
+- Update to latest version of gst-plugins-base 0.10.x branch.
+
+* Fri Sep 02 2011 Carsten Munk <carsten@maemo.org> - 0.10.32
+- Drop gtk-doc dependancy
+
+* Fri May 13 2011 vivian zhang <vivian.zhang@intel.com> - 0.10.32
+- Adjust buffer-time to 600ms for reducing power and c0% (BMC #17213)
+
+* Fri May 06 2011 vivian zhang <vivian.zhang@intel.com> - 0.10.32
+- Adjust buffer-time and latency-time of pulsesink to improve pulseaudio performance (BMC 17213)
