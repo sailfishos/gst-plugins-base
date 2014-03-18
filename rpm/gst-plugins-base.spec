@@ -15,7 +15,6 @@ BuildRequires: pkgconfig(gstreamer-1.0) >= %{gst_minver}
 BuildRequires: pkgconfig(orc-0.4)
 BuildRequires: pkgconfig(ogg)
 BuildRequires: pkgconfig(vorbis)
-BuildRequires: pkgconfig(libvisual-0.4)
 BuildRequires: pkgconfig(theora)
 BuildRequires: python
 BuildRequires: autoconf213
@@ -126,7 +125,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/gstreamer-%{majorminor}/libgsttheora.so
 %{_libdir}/gstreamer-%{majorminor}/libgstvorbis.so
 %{_libdir}/gstreamer-%{majorminor}/libgstogg.so
-%{_libdir}/gstreamer-%{majorminor}/libgstlibvisual.so
 %{_libdir}/gstreamer-%{majorminor}/libgstgio.so
 
 %files devel
