@@ -51,7 +51,6 @@ GStreamer Plugins Base library applications
 
 %build
 NOCONFIGURE=1 ./autogen.sh
-CFLAGS="$CFLAGS -mfpu=neon" \
 %configure \
   --with-package-name='SailfishOS GStreamer Base Plug-ins' \
   --with-package-origin='http://jolla.com' \
