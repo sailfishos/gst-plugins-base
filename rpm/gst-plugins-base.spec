@@ -2,7 +2,7 @@
 %define gstreamer   gstreamer
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.2.0
+Version: 	1.4.3
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 Group: 		Applications/Multimedia
@@ -154,6 +154,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/gstreamer-%{majorminor}/gst/video/video-frame.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/video-info.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/video-overlay-composition.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/video-tile.h
 %{_includedir}/gstreamer-%{majorminor}/gst/rtp/gstrtphdrext.h
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/audio.h
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/gstaudiofilter.h
@@ -189,6 +190,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/gstreamer-%{majorminor}/gst/rtsp/gstrtspurl.h
 %{_includedir}/gstreamer-%{majorminor}/gst/sdp/gstsdp.h
 %{_includedir}/gstreamer-%{majorminor}/gst/sdp/gstsdpmessage.h
+%{_includedir}/gstreamer-%{majorminor}/gst/sdp/gstmikey.h
 %{_includedir}/gstreamer-%{majorminor}/gst/rtp/gstrtppayloads.h
 %{_includedir}/gstreamer-%{majorminor}/gst/tag/gsttagdemux.h
 %{_includedir}/gstreamer-%{majorminor}/gst/pbutils/pbutils-enumtypes.h
@@ -269,5 +271,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-, root, root)
 %{_bindir}/gst-discoverer-%{majorminor}
 %{_bindir}/gst-play-%{majorminor}
+%{_bindir}/gst-device-monitor-%{majorminor}
 %{_mandir}/man1/gst-discoverer-%{majorminor}*
 %{_mandir}/man1/gst-play-%{majorminor}*
+%{_mandir}/man1/gst-device-monitor-%{majorminor}*
