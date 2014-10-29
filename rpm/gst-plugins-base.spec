@@ -1,8 +1,7 @@
 %define majorminor  1.0
 %define gstreamer   gstreamer
-%define gst_minver  1.2.0
 
-Name: 		%{gstreamer}1.0-plugins-base
+Name: 		%{gstreamer}%{majorminor}-plugins-base
 Version: 	1.2.0
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
@@ -11,7 +10,7 @@ License: 	LGPL
 URL:		http://gstreamer.freedesktop.org/
 Vendor:         GStreamer Backpackers Team <package@gstreamer.freedesktop.org>
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
-BuildRequires: pkgconfig(gstreamer-1.0) >= %{gst_minver}
+BuildRequires: pkgconfig(gstreamer-1.0)
 BuildRequires: pkgconfig(orc-0.4)
 BuildRequires: pkgconfig(ogg)
 BuildRequires: pkgconfig(vorbis)
@@ -54,7 +53,7 @@ GStreamer Plugins Base library applications
 NOCONFIGURE=1 ./autogen.sh
 CFLAGS="$CFLAGS -mfpu=neon" \
 %configure \
-  --with-package-name='Jolla GStreamer Base Plug-ins' \
+  --with-package-name='SailfishOS GStreamer Base Plug-ins' \
   --with-package-origin='http://jolla.com' \
   --enable-debug \
   --disable-gtk-doc \
