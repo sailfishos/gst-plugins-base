@@ -19,7 +19,7 @@ BuildRequires: pkgconfig(vorbis)
 BuildRequires: pkgconfig(theora)
 BuildRequires: pkgconfig(gobject-introspection-1.0)
 BuildRequires: python
-BuildRequires: autoconf213
+BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: libtool
 BuildRequires: gettext-devel
