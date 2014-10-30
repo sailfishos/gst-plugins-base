@@ -83,9 +83,7 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 rm -fr $RPM_BUILD_ROOT%{_datadir}/gtk-doc
 rm -fr $RPM_BUILD_ROOT%{_datadir}/gst-plugins-base/1.0/license-translations.dict
-
-%clean
-rm -rf $RPM_BUILD_ROOT
+rm -fr $RPM_BUILD_ROOT%{_mandir}
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
@@ -272,6 +270,3 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/gst-discoverer-%{majorminor}
 %{_bindir}/gst-play-%{majorminor}
 %{_bindir}/gst-device-monitor-%{majorminor}
-%{_mandir}/man1/gst-discoverer-%{majorminor}*
-%{_mandir}/man1/gst-play-%{majorminor}*
-%{_mandir}/man1/gst-device-monitor-%{majorminor}*
