@@ -10,8 +10,9 @@ License: 	LGPL
 URL:		http://gstreamer.freedesktop.org/
 Vendor:         GStreamer Backpackers Team <package@gstreamer.freedesktop.org>
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
+Requires:      orc >= 0.4.18
 BuildRequires: pkgconfig(gstreamer-1.0)
-BuildRequires: pkgconfig(orc-0.4)
+BuildRequires: pkgconfig(orc-0.4) >= 0.4.18
 BuildRequires: pkgconfig(ogg)
 BuildRequires: pkgconfig(vorbis)
 BuildRequires: pkgconfig(theora)
