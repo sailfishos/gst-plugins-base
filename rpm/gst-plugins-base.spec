@@ -8,7 +8,6 @@ Summary: 	GStreamer streaming media framework base plug-ins
 Group: 		Applications/Multimedia
 License: 	LGPL
 URL:		http://gstreamer.freedesktop.org/
-Vendor:         GStreamer Backpackers Team <package@gstreamer.freedesktop.org>
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
 Patch0:        0001-streamsynchronizer-don-t-unset-DISCONT-flag.patch
 Requires:      orc >= 0.4.18
