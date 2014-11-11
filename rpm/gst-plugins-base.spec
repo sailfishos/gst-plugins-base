@@ -2,7 +2,7 @@
 %define gstreamer   gstreamer
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.4.3
+Version: 	1.4.4
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 Group: 		Applications/Multimedia
