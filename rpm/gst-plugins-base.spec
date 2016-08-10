@@ -203,6 +203,9 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/gstaudioiec61937.h
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/gstaudiodecoder.h
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/gstaudioencoder.h
+%{_includedir}/gstreamer-%{majorminor}/gst/audio/audio-channel-mixer.h
+%{_includedir}/gstreamer-%{majorminor}/gst/audio/audio-converter.h
+%{_includedir}/gstreamer-%{majorminor}/gst/audio/audio-quantize.h
 %{_includedir}/gstreamer-%{majorminor}/gst/tag/gsttagmux.h
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/gstaudiobasesink.h
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/gstaudiobasesrc.h
@@ -210,6 +213,8 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_includedir}/gstreamer-%{majorminor}/gst/rtp/gstrtpbaseaudiopayload.h
 %{_includedir}/gstreamer-%{majorminor}/gst/rtp/gstrtpbasedepayload.h
 %{_includedir}/gstreamer-%{majorminor}/gst/rtp/gstrtpbasepayload.h
+%{_includedir}/gstreamer-%{majorminor}/gst/rtp/gstrtp-enumtypes.h
+%{_includedir}/gstreamer-%{majorminor}/gst/rtp/gstrtpdefs.h
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/streamvolume.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/colorbalance.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/colorbalancechannel.h
@@ -217,6 +222,7 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_includedir}/gstreamer-%{majorminor}/gst/video/videooverlay.h
 %{_includedir}/gstreamer-%{majorminor}/gst/app/app.h
 %{_includedir}/gstreamer-%{majorminor}/gst/pbutils/pbutils.h
+%{_includedir}/gstreamer-%{majorminor}/gst/pbutils/gstaudiovisualizer.h
 %{_includedir}/gstreamer-%{majorminor}/gst/riff/riff.h
 %{_includedir}/gstreamer-%{majorminor}/gst/rtp/rtp.h
 %{_includedir}/gstreamer-%{majorminor}/gst/rtsp/rtsp.h
@@ -227,7 +233,14 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_includedir}/gstreamer-%{majorminor}/gst/sdp/sdp.h
 %{_includedir}/gstreamer-%{majorminor}/gst/allocators/allocators.h
 %{_includedir}/gstreamer-%{majorminor}/gst/allocators/gstdmabuf.h
+%{_includedir}/gstreamer-%{majorminor}/gst/allocators/gstfdmemory.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/video-chroma.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/gstvideoaffinetransformationmeta.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/video-converter.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/video-dither.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/video-multiview.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/video-resampler.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/video-scaler.h
 %{_libdir}/libgstallocators-1.0.so
 %{_libdir}/pkgconfig/gstreamer-allocators-1.0.pc
 %{_libdir}/libgstfft-%{majorminor}.so
