@@ -9,7 +9,6 @@ Group: 		Applications/Multimedia
 License: 	LGPL
 URL:		http://gstreamer.freedesktop.org/
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
-Patch0:        0001-streamsynchronizer-don-t-unset-DISCONT-flag.patch
 Requires:      orc >= 0.4.18
 BuildRequires: pkgconfig(gstreamer-1.0)
 BuildRequires: pkgconfig(orc-0.4) >= 0.4.18
@@ -49,7 +48,6 @@ GStreamer Plugins Base library applications
 
 %prep
 %setup -q -n gstreamer1.0-plugins-base-%{version}/gst-plugins-base
-%patch0 -p1
 
 %build
 NOCONFIGURE=1 ./autogen.sh
