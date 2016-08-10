@@ -16,6 +16,7 @@ BuildRequires: pkgconfig(ogg)
 BuildRequires: pkgconfig(vorbis)
 BuildRequires: pkgconfig(theora)
 BuildRequires: pkgconfig(gobject-introspection-1.0)
+BuildRequires: pkgconfig(opus)
 BuildRequires: python
 BuildRequires: autoconf
 BuildRequires: automake
@@ -68,7 +69,8 @@ NOCONFIGURE=1 ./autogen.sh
   --disable-x \
   --disable-xvideo \
   --disable-xshm \
-  --disable-alsa
+  --disable-alsa \
+  --enable-opus
 
 make %{?jobs:-j%jobs}
 
@@ -123,6 +125,7 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/gstreamer-%{majorminor}/libgstvorbis.so
 %{_libdir}/gstreamer-%{majorminor}/libgstogg.so
 %{_libdir}/gstreamer-%{majorminor}/libgstgio.so
+%{_libdir}/gstreamer-%{majorminor}/libgstopus.so
 %{_libdir}/girepository-1.0/GstAllocators-1.0.typelib
 %{_libdir}/girepository-1.0/GstApp-1.0.typelib
 %{_libdir}/girepository-1.0/GstAudio-1.0.typelib
