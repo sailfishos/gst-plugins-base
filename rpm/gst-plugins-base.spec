@@ -128,7 +128,6 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/girepository-1.0/GstAudio-1.0.typelib
 %{_libdir}/girepository-1.0/GstFft-1.0.typelib
 %{_libdir}/girepository-1.0/GstPbutils-1.0.typelib
-%{_libdir}/girepository-1.0/GstRiff-1.0.typelib
 %{_libdir}/girepository-1.0/GstRtp-1.0.typelib
 %{_libdir}/girepository-1.0/GstRtsp-1.0.typelib
 %{_libdir}/girepository-1.0/GstSdp-1.0.typelib
@@ -257,7 +256,6 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_datadir}/gir-1.0/GstAudio-1.0.gir
 %{_datadir}/gir-1.0/GstFft-1.0.gir
 %{_datadir}/gir-1.0/GstPbutils-1.0.gir
-%{_datadir}/gir-1.0/GstRiff-1.0.gir
 %{_datadir}/gir-1.0/GstRtp-1.0.gir
 %{_datadir}/gir-1.0/GstRtsp-1.0.gir
 %{_datadir}/gir-1.0/GstSdp-1.0.gir
