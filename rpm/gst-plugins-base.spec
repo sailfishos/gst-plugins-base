@@ -6,7 +6,7 @@ Version: 	1.8.3
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 Group: 		Applications/Multimedia
-License: 	LGPL
+License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
 Requires:      orc >= 0.4.18
