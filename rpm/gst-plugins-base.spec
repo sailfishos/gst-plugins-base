@@ -1,21 +1,24 @@
 %define majorminor  1.0
 %define gstreamer   gstreamer
 
+
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.8.3
+Version: 	1.10.2
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 Group: 		Applications/Multimedia
 License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
+
+%define sonamever %(echo %{version} | cut -d '+' -f 1)
+
 Requires:      orc >= 0.4.18
-BuildRequires: pkgconfig(gstreamer-1.0)
+BuildRequires: pkgconfig(gstreamer-1.0) >= %{sonamever}
 BuildRequires: pkgconfig(orc-0.4) >= 0.4.18
 BuildRequires: pkgconfig(ogg)
 BuildRequires: pkgconfig(vorbis)
 BuildRequires: pkgconfig(theora)
-BuildRequires: pkgconfig(gobject-introspection-1.0)
 BuildRequires: pkgconfig(opus)
 BuildRequires: python
 BuildRequires: autoconf
@@ -57,7 +60,7 @@ NOCONFIGURE=1 ./autogen.sh
   --with-package-origin='http://jolla.com' \
   --enable-debug \
   --disable-gtk-doc \
-  --enable-introspection=yes \
+  --disable-introspection \
   --disable-nls \
   --disable-static \
   --enable-shared \
@@ -126,16 +129,6 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/gstreamer-%{majorminor}/libgstogg.so
 %{_libdir}/gstreamer-%{majorminor}/libgstgio.so
 %{_libdir}/gstreamer-%{majorminor}/libgstopus.so
-%{_libdir}/girepository-1.0/GstAllocators-1.0.typelib
-%{_libdir}/girepository-1.0/GstApp-1.0.typelib
-%{_libdir}/girepository-1.0/GstAudio-1.0.typelib
-%{_libdir}/girepository-1.0/GstFft-1.0.typelib
-%{_libdir}/girepository-1.0/GstPbutils-1.0.typelib
-%{_libdir}/girepository-1.0/GstRtp-1.0.typelib
-%{_libdir}/girepository-1.0/GstRtsp-1.0.typelib
-%{_libdir}/girepository-1.0/GstSdp-1.0.typelib
-%{_libdir}/girepository-1.0/GstTag-1.0.typelib
-%{_libdir}/girepository-1.0/GstVideo-1.0.typelib
 
 %files devel
 %defattr(-, root, root)
@@ -244,6 +237,9 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_includedir}/gstreamer-%{majorminor}/gst/video/video-multiview.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/video-resampler.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/video-scaler.h
+%{_includedir}/gstreamer-%{majorminor}/gst/audio/audio-resampler.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/gstvideotimecode.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/videodirection.h
 %{_libdir}/libgstallocators-1.0.so
 %{_libdir}/pkgconfig/gstreamer-allocators-1.0.pc
 %{_libdir}/libgstfft-%{majorminor}.so
@@ -267,16 +263,6 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/pkgconfig/gstreamer-tag-%{majorminor}.pc
 %{_libdir}/pkgconfig/gstreamer-video-%{majorminor}.pc
 %{_libdir}/pkgconfig/gstreamer-app-%{majorminor}.pc
-%{_datadir}/gir-1.0/GstAllocators-1.0.gir
-%{_datadir}/gir-1.0/GstApp-1.0.gir
-%{_datadir}/gir-1.0/GstAudio-1.0.gir
-%{_datadir}/gir-1.0/GstFft-1.0.gir
-%{_datadir}/gir-1.0/GstPbutils-1.0.gir
-%{_datadir}/gir-1.0/GstRtp-1.0.gir
-%{_datadir}/gir-1.0/GstRtsp-1.0.gir
-%{_datadir}/gir-1.0/GstSdp-1.0.gir
-%{_datadir}/gir-1.0/GstTag-1.0.gir
-%{_datadir}/gir-1.0/GstVideo-1.0.gir
 
 %files apps
 %defattr(-, root, root)
