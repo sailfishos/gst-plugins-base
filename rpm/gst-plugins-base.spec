@@ -19,6 +19,7 @@ BuildRequires: pkgconfig(orc-0.4) >= 0.4.18
 BuildRequires: pkgconfig(ogg)
 BuildRequires: pkgconfig(vorbis)
 BuildRequires: pkgconfig(theora)
+BuildRequires: pkgconfig(gobject-introspection-1.0)
 BuildRequires: pkgconfig(opus)
 BuildRequires: python
 BuildRequires: autoconf
@@ -60,7 +61,7 @@ NOCONFIGURE=1 ./autogen.sh
   --with-package-origin='http://jolla.com' \
   --enable-debug \
   --disable-gtk-doc \
-  --disable-introspection \
+  --enable-introspection=yes \
   --disable-nls \
   --disable-static \
   --enable-shared \
@@ -129,6 +130,16 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/gstreamer-%{majorminor}/libgstogg.so
 %{_libdir}/gstreamer-%{majorminor}/libgstgio.so
 %{_libdir}/gstreamer-%{majorminor}/libgstopus.so
+%{_libdir}/girepository-1.0/GstAllocators-1.0.typelib
+%{_libdir}/girepository-1.0/GstApp-1.0.typelib
+%{_libdir}/girepository-1.0/GstAudio-1.0.typelib
+%{_libdir}/girepository-1.0/GstFft-1.0.typelib
+%{_libdir}/girepository-1.0/GstPbutils-1.0.typelib
+%{_libdir}/girepository-1.0/GstRtp-1.0.typelib
+%{_libdir}/girepository-1.0/GstRtsp-1.0.typelib
+%{_libdir}/girepository-1.0/GstSdp-1.0.typelib
+%{_libdir}/girepository-1.0/GstTag-1.0.typelib
+%{_libdir}/girepository-1.0/GstVideo-1.0.typelib
 
 %files devel
 %defattr(-, root, root)
@@ -263,6 +274,16 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/pkgconfig/gstreamer-tag-%{majorminor}.pc
 %{_libdir}/pkgconfig/gstreamer-video-%{majorminor}.pc
 %{_libdir}/pkgconfig/gstreamer-app-%{majorminor}.pc
+%{_datadir}/gir-1.0/GstAllocators-1.0.gir
+%{_datadir}/gir-1.0/GstApp-1.0.gir
+%{_datadir}/gir-1.0/GstAudio-1.0.gir
+%{_datadir}/gir-1.0/GstFft-1.0.gir
+%{_datadir}/gir-1.0/GstPbutils-1.0.gir
+%{_datadir}/gir-1.0/GstRtp-1.0.gir
+%{_datadir}/gir-1.0/GstRtsp-1.0.gir
+%{_datadir}/gir-1.0/GstSdp-1.0.gir
+%{_datadir}/gir-1.0/GstTag-1.0.gir
+%{_datadir}/gir-1.0/GstVideo-1.0.gir
 
 %files apps
 %defattr(-, root, root)
