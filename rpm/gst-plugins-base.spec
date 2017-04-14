@@ -3,7 +3,7 @@
 
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.10.2
+Version: 	1.10.4
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 Group: 		Applications/Multimedia
