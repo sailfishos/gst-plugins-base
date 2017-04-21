@@ -10,6 +10,7 @@ Group: 		Applications/Multimedia
 License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
+Patch0:         0001-Fix-pipelines-with-appsrc-returning-incorrect-durati.patch
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
@@ -53,6 +54,7 @@ GStreamer Plugins Base library applications
 
 %prep
 %setup -q -n gstreamer1.0-plugins-base-%{version}/gst-plugins-base
+%patch0 -p1
 
 %build
 NOCONFIGURE=1 ./autogen.sh
