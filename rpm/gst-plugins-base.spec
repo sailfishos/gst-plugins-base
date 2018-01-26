@@ -3,14 +3,13 @@
 
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.10.4
+Version: 	1.12.4
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 Group: 		Applications/Multimedia
 License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
-Patch0:         0001-Fix-pipelines-with-appsrc-returning-incorrect-durati.patch
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
@@ -54,13 +53,12 @@ GStreamer Plugins Base library applications
 
 %prep
 %setup -q -n gstreamer1.0-plugins-base-%{version}/gst-plugins-base
-%patch0 -p1
 
 %build
 NOCONFIGURE=1 ./autogen.sh
 %configure \
   --with-package-name='SailfishOS GStreamer Base Plug-ins' \
-  --with-package-origin='http://jolla.com' \
+  --with-package-origin='http://sailfishos.org' \
   --enable-debug \
   --disable-gtk-doc \
   --enable-introspection=yes \
@@ -78,7 +76,7 @@ NOCONFIGURE=1 ./autogen.sh
   --disable-alsa \
   --enable-opus
 
-make %{?jobs:-j%jobs}
+make %{?_smp_mflags}
 
 %install
 %make_install
@@ -125,13 +123,15 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/gstreamer-%{majorminor}/libgstaudioresample.so
 %{_libdir}/gstreamer-%{majorminor}/libgstaudiotestsrc.so
 %{_libdir}/gstreamer-%{majorminor}/libgstapp.so
-%{_libdir}/gstreamer-%{majorminor}/libgstencodebin.so
+%{_libdir}/gstreamer-%{majorminor}/libgstencoding.so
 %{_libdir}/gstreamer-%{majorminor}/libgstsubparse.so
 %{_libdir}/gstreamer-%{majorminor}/libgsttheora.so
 %{_libdir}/gstreamer-%{majorminor}/libgstvorbis.so
 %{_libdir}/gstreamer-%{majorminor}/libgstogg.so
 %{_libdir}/gstreamer-%{majorminor}/libgstgio.so
 %{_libdir}/gstreamer-%{majorminor}/libgstopus.so
+%{_libdir}/gstreamer-%{majorminor}/libgstpbtypes.so
+%{_libdir}/gstreamer-%{majorminor}/libgstrawparse.so
 %{_libdir}/girepository-1.0/GstAllocators-1.0.typelib
 %{_libdir}/girepository-1.0/GstApp-1.0.typelib
 %{_libdir}/girepository-1.0/GstAudio-1.0.typelib
@@ -253,6 +253,8 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/audio-resampler.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/gstvideotimecode.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/videodirection.h
+%{_includedir}/gstreamer-%{majorminor}/gst/app/app-enumtypes.h
+%{_includedir}/gstreamer-%{majorminor}/gst/tag/tag-enumtypes.h
 %{_libdir}/libgstallocators-1.0.so
 %{_libdir}/pkgconfig/gstreamer-allocators-1.0.pc
 %{_libdir}/libgstfft-%{majorminor}.so
