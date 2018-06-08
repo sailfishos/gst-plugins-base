@@ -3,14 +3,13 @@
 
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.10.4
+Version: 	1.14.1
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 Group: 		Applications/Multimedia
 License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
-Patch0:         0001-Fix-pipelines-with-appsrc-returning-incorrect-durati.patch
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
@@ -22,6 +21,11 @@ BuildRequires: pkgconfig(vorbis)
 BuildRequires: pkgconfig(theora)
 BuildRequires: pkgconfig(gobject-introspection-1.0)
 BuildRequires: pkgconfig(opus)
+BuildRequires: pkgconfig(wayland-egl)
+BuildRequires: pkgconfig(glesv2)
+BuildRequires: pkgconfig(egl)
+# iso-codes should be used here, but is currently broken in Sailfish
+#BuildRequires: pkgconfig(iso-codes)
 BuildRequires: python
 BuildRequires: autoconf
 BuildRequires: automake
@@ -54,7 +58,6 @@ GStreamer Plugins Base library applications
 
 %prep
 %setup -q -n gstreamer1.0-plugins-base-%{version}/gst-plugins-base
-%patch0 -p1
 
 %build
 NOCONFIGURE=1 ./autogen.sh
@@ -110,6 +113,7 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/libgstrtsp-%{majorminor}.so.*
 %{_libdir}/libgstsdp-%{majorminor}.so.*
 %{_libdir}/libgstapp-%{majorminor}.so.*
+%{_libdir}/libgstgl-%{majorminor}.so.*
 %{_libdir}/libgstallocators-%{majorminor}.so.*
 %{_libdir}/gstreamer-%{majorminor}/libgstadder.so
 %{_libdir}/gstreamer-%{majorminor}/libgstaudioconvert.so
@@ -125,23 +129,27 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/gstreamer-%{majorminor}/libgstaudioresample.so
 %{_libdir}/gstreamer-%{majorminor}/libgstaudiotestsrc.so
 %{_libdir}/gstreamer-%{majorminor}/libgstapp.so
-%{_libdir}/gstreamer-%{majorminor}/libgstencodebin.so
 %{_libdir}/gstreamer-%{majorminor}/libgstsubparse.so
 %{_libdir}/gstreamer-%{majorminor}/libgsttheora.so
 %{_libdir}/gstreamer-%{majorminor}/libgstvorbis.so
 %{_libdir}/gstreamer-%{majorminor}/libgstogg.so
 %{_libdir}/gstreamer-%{majorminor}/libgstgio.so
 %{_libdir}/gstreamer-%{majorminor}/libgstopus.so
+%{_libdir}/gstreamer-%{majorminor}/libgstaudiomixer.so
+%{_libdir}/gstreamer-%{majorminor}/libgstencoding.so
+%{_libdir}/gstreamer-%{majorminor}/libgstopengl.so
+%{_libdir}/gstreamer-%{majorminor}/libgstpbtypes.so
+%{_libdir}/gstreamer-%{majorminor}/libgstrawparse.so
 %{_libdir}/girepository-1.0/GstAllocators-1.0.typelib
 %{_libdir}/girepository-1.0/GstApp-1.0.typelib
 %{_libdir}/girepository-1.0/GstAudio-1.0.typelib
-%{_libdir}/girepository-1.0/GstFft-1.0.typelib
 %{_libdir}/girepository-1.0/GstPbutils-1.0.typelib
 %{_libdir}/girepository-1.0/GstRtp-1.0.typelib
 %{_libdir}/girepository-1.0/GstRtsp-1.0.typelib
 %{_libdir}/girepository-1.0/GstSdp-1.0.typelib
 %{_libdir}/girepository-1.0/GstTag-1.0.typelib
 %{_libdir}/girepository-1.0/GstVideo-1.0.typelib
+%{_libdir}/girepository-1.0/GstGL-1.0.typelib
 
 %files devel
 %defattr(-, root, root)
@@ -253,8 +261,77 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/audio-resampler.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/gstvideotimecode.h
 %{_includedir}/gstreamer-%{majorminor}/gst/video/videodirection.h
-%{_libdir}/libgstallocators-1.0.so
-%{_libdir}/pkgconfig/gstreamer-allocators-1.0.pc
+%{_includedir}/gstreamer-%{majorminor}/gst/allocators/allocators-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/allocators/gstphysmemory.h
+%{_includedir}/gstreamer-%{majorminor}/gst/app/app-enumtypes.h
+%{_includedir}/gstreamer-%{majorminor}/gst/app/app-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/audio/audio-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/audio/gstaudioaggregator.h
+%{_includedir}/gstreamer-%{majorminor}/gst/audio/gstaudiostreamalign.h
+%{_includedir}/gstreamer-%{majorminor}/gst/fft/fft-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/egl/gstegl.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/egl/gsteglimage.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/egl/gstgldisplay_egl.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/egl/gstglmemoryegl.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gl-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gl.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/all_functions.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/base.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/blending.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/buffers.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/debug.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/eglimage.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/fbo.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/fixedfunction.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/gles.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/gstgl_compat.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/gstgl_gles2compat.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/opengl.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/query.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/shaders.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/sync.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/glprototypes/vao.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstgl_enums.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstgl_fwd.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglapi.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglbasefilter.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglbasememory.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglbuffer.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglbufferpool.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglcolorconvert.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglcontext.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstgldebug.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstgldisplay.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglfeature.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglfilter.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglformat.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglframebuffer.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglfuncs.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglmemory.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglmemorypbo.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstgloverlaycompositor.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglquery.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglrenderbuffer.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglshader.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglshaderstrings.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglsl.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglslstage.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglsyncmeta.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglupload.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglutils.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglviewconvert.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/gstglwindow.h
+%{_includedir}/gstreamer-%{majorminor}/gst/gl/wayland/gstgldisplay_wayland.h
+%{_includedir}/gstreamer-%{majorminor}/gst/pbutils/pbutils-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/riff/riff-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/rtp/rtp-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/rtsp/rtsp-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/sdp/sdp-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/tag/tag-enumtypes.h
+%{_includedir}/gstreamer-%{majorminor}/gst/tag/tag-prelude.h
+%{_includedir}/gstreamer-%{majorminor}/gst/video/video-prelude.h
+%{_libdir}/gstreamer-%{majorminor}/include/gst/gl/gstglconfig.h
+%{_libdir}/libgstallocators-%{majorminor}.so
 %{_libdir}/libgstfft-%{majorminor}.so
 %{_libdir}/libgstrtsp-%{majorminor}.so
 %{_libdir}/libgstsdp-%{majorminor}.so
@@ -265,6 +342,7 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/libgstrtp-%{majorminor}.so
 %{_libdir}/libgstpbutils-%{majorminor}.so
 %{_libdir}/libgstapp-%{majorminor}.so
+%{_libdir}/libgstgl-%{majorminor}.so
 %{_libdir}/pkgconfig/gstreamer-plugins-base-%{majorminor}.pc
 %{_libdir}/pkgconfig/gstreamer-audio-%{majorminor}.pc
 %{_libdir}/pkgconfig/gstreamer-fft-%{majorminor}.pc
@@ -276,16 +354,18 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/pkgconfig/gstreamer-tag-%{majorminor}.pc
 %{_libdir}/pkgconfig/gstreamer-video-%{majorminor}.pc
 %{_libdir}/pkgconfig/gstreamer-app-%{majorminor}.pc
+%{_libdir}/pkgconfig/gstreamer-allocators-%{majorminor}.pc
+%{_libdir}/pkgconfig/gstreamer-gl-%{majorminor}.pc
 %{_datadir}/gir-1.0/GstAllocators-1.0.gir
 %{_datadir}/gir-1.0/GstApp-1.0.gir
 %{_datadir}/gir-1.0/GstAudio-1.0.gir
-%{_datadir}/gir-1.0/GstFft-1.0.gir
 %{_datadir}/gir-1.0/GstPbutils-1.0.gir
 %{_datadir}/gir-1.0/GstRtp-1.0.gir
 %{_datadir}/gir-1.0/GstRtsp-1.0.gir
 %{_datadir}/gir-1.0/GstSdp-1.0.gir
 %{_datadir}/gir-1.0/GstTag-1.0.gir
 %{_datadir}/gir-1.0/GstVideo-1.0.gir
+%{_datadir}/gir-1.0/GstGL-1.0.gir
 
 %files apps
 %defattr(-, root, root)
