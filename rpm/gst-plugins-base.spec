@@ -3,13 +3,16 @@
 
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.14.1
+Version: 	1.14.4
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 Group: 		Applications/Multimedia
 License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
+Patch0:         0000-Move-encodebin-sources-to-encodebasebin.patch
+Patch1:         0001-encodebin-Split-implementation-into-a-base-class.patch
+Patch2:         0002-splitencodebin-Add-new-element.patch
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
@@ -58,6 +61,9 @@ GStreamer Plugins Base library applications
 
 %prep
 %setup -q -n gstreamer1.0-plugins-base-%{version}/gst-plugins-base
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
 
 %build
 NOCONFIGURE=1 ./autogen.sh
