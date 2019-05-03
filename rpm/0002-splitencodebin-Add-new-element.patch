@@ -36,7 +36,7 @@ index 7100749..95ff04d 100644
  	gststreamsplitter.h	\
  	gstsmartencoder.h	\
 diff --git a/gst/encoding/gstencodebasebin.c b/gst/encoding/gstencodebasebin.c
-index 184ebf7..4c6a7be 100644
+index 2154d64..60fcbf4 100644
 --- a/gst/encoding/gstencodebasebin.c
 +++ b/gst/encoding/gstencodebasebin.c
 @@ -918,14 +918,71 @@
@@ -125,7 +125,7 @@ index 184ebf7..4c6a7be 100644
          sinkcaps);
      g_assert (srctempl != NULL);
 -    sinktempl = gst_element_get_compatible_pad_template (ebin->muxer, srctempl);
--    g_object_unref (srctempl);
+-    gst_object_unref (srctempl);
    }
  
 -  if (G_UNLIKELY (sinktempl == NULL))
@@ -470,7 +470,7 @@ index 0000000..2b35feb
 +
 +#endif /* __GST_SPLITENCODEBIN_H__ */
 diff --git a/gst/encoding/meson.build b/gst/encoding/meson.build
-index 3e34018..932e728 100644
+index aef4607..9380ef6 100644
 --- a/gst/encoding/meson.build
 +++ b/gst/encoding/meson.build
 @@ -1,5 +1,6 @@

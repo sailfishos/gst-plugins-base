@@ -1,11 +1,12 @@
-From 8706694de2fcc678cdd9ee0b95e044b0ea70bd80 Wed, 17 Apr 2019 15:11:35 +0200
+From 026b7f8328a3cf1c4e05f3f1a9520df151c9187a Fri, 3 May 2019 09:06:44 +0200
 From: Andrew Branson <andrew.branson@jollamobile.com>
-Date: Wed, 17 Apr 2019 14:35:38 +0200
+Date: Fri, 3 May 2019 08:47:51 +0200
 Subject: [PATCH] Move encodebin sources to encodebasebin
+
 
 diff --git a/gst/encoding/gstencodebasebin.c b/gst/encoding/gstencodebasebin.c
 new file mode 100644
-index 0000000..573ea94
+index 0000000..6f8cc5e
 --- /dev/null
 +++ b/gst/encoding/gstencodebasebin.c
 @@ -0,0 +1,2351 @@
@@ -1089,7 +1090,7 @@ index 0000000..573ea94
 +        sinkcaps);
 +    g_assert (srctempl != NULL);
 +    sinktempl = gst_element_get_compatible_pad_template (ebin->muxer, srctempl);
-+    g_object_unref (srctempl);
++    gst_object_unref (srctempl);
 +  }
 +
 +  if (G_UNLIKELY (sinktempl == NULL))
@@ -1141,7 +1142,7 @@ index 0000000..573ea94
 +
 +  structure = gst_caps_get_structure (caps, 0);
 +  gst_structure_remove_field (structure, "streamheader");
-+  GST_DEBUG_OBJECT (pad, "Forcing caps to %" GST_PTR_FORMAT, caps);
++  GST_INFO_OBJECT (pad, "Forcing caps to %" GST_PTR_FORMAT, caps);
 +  g_object_set (GST_OBJECT_PARENT (pad), "caps", caps, NULL);
 +  g_signal_handler_disconnect (pad, *signal_id);
 +  *signal_id = 0;
@@ -1179,8 +1180,8 @@ index 0000000..573ea94
 +  /* missing plugin support */
 +  gst_element_post_message (GST_ELEMENT_CAST (ebin),
 +      gst_missing_encoder_message_new (GST_ELEMENT_CAST (ebin), format));
-+  GST_ELEMENT_ERROR (ebin, CORE, MISSING_PLUGIN, (NULL),
-+      ("Couldn't create encoder for format %" GST_PTR_FORMAT, format));
++  GST_ELEMENT_ERROR (ebin, CORE, MISSING_PLUGIN,
++      ("Couldn't create encoder for format %" GST_PTR_FORMAT, format), (NULL));
 +
 +  gst_caps_unref (format);
 +}
@@ -1394,7 +1395,7 @@ index 0000000..573ea94
 +      sinkpad = gst_element_get_static_pad (sgroup->smartencoder, "sink");
 +    }
 +    gst_caps_unref (tmpcaps);
-+    g_object_unref (srcpad);
++    gst_object_unref (srcpad);
 +  }
 +
 +  srcpad =
@@ -1406,8 +1407,8 @@ index 0000000..573ea94
 +  /* Go straight to splitter */
 +  if (G_UNLIKELY (fast_pad_link (srcpad, sinkpad) != GST_PAD_LINK_OK))
 +    goto passthrough_link_failure;
-+  g_object_unref (sinkpad);
-+  g_object_unref (srcpad);
++  gst_object_unref (sinkpad);
++  gst_object_unref (srcpad);
 +  srcpad = NULL;
 +
 +  /* Path 2 : Conversion / Encoding */
@@ -1427,8 +1428,8 @@ index 0000000..573ea94
 +    srcpad = gst_element_get_static_pad (sgroup->encoder, "src");
 +    if (G_UNLIKELY (fast_pad_link (srcpad, sinkpad) != GST_PAD_LINK_OK))
 +      goto encoder_link_failure;
-+    g_object_unref (sinkpad);
-+    g_object_unref (srcpad);
++    gst_object_unref (sinkpad);
++    gst_object_unref (srcpad);
 +    srcpad = NULL;
 +  } else if (gst_encoding_profile_get_preset (sgroup->profile)
 +      || gst_encoding_profile_get_preset_name (sgroup->profile)) {
@@ -1600,8 +1601,8 @@ index 0000000..573ea94
 +    goto no_splitter_srcpad;
 +  if (G_UNLIKELY (fast_pad_link (srcpad, sinkpad) != GST_PAD_LINK_OK))
 +    goto splitter_encoding_failure;
-+  g_object_unref (sinkpad);
-+  g_object_unref (srcpad);
++  gst_object_unref (sinkpad);
++  gst_object_unref (srcpad);
 +  srcpad = NULL;
 +
 +  /* End of Stream 2 setup */
@@ -1984,8 +1985,8 @@ index 0000000..573ea94
 +    /* missing plugin support */
 +    gst_element_post_message (GST_ELEMENT_CAST (ebin),
 +        gst_missing_encoder_message_new (GST_ELEMENT_CAST (ebin), format));
-+    GST_ELEMENT_ERROR (ebin, CORE, MISSING_PLUGIN, (NULL),
-+        ("No available muxer for format %" GST_PTR_FORMAT, format));
++    GST_ELEMENT_ERROR (ebin, CORE, MISSING_PLUGIN,
++        ("No available muxer for format %" GST_PTR_FORMAT, format), (NULL));
 +    if (format)
 +      gst_caps_unref (format);
 +    return FALSE;
@@ -2406,7 +2407,7 @@ index 0000000..021e690
 +#endif /* __GST_ENCODEBIN_H__ */
 diff --git a/gst/encoding/gstencodebin.c b/gst/encoding/gstencodebin.c
 deleted file mode 100644
-index 573ea94..0000000
+index 6f8cc5e..0000000
 --- a/gst/encoding/gstencodebin.c
 +++ /dev/null
 @@ -1,2351 +0,0 @@
@@ -3490,7 +3491,7 @@ index 573ea94..0000000
 -        sinkcaps);
 -    g_assert (srctempl != NULL);
 -    sinktempl = gst_element_get_compatible_pad_template (ebin->muxer, srctempl);
--    g_object_unref (srctempl);
+-    gst_object_unref (srctempl);
 -  }
 -
 -  if (G_UNLIKELY (sinktempl == NULL))
@@ -3542,7 +3543,7 @@ index 573ea94..0000000
 -
 -  structure = gst_caps_get_structure (caps, 0);
 -  gst_structure_remove_field (structure, "streamheader");
--  GST_DEBUG_OBJECT (pad, "Forcing caps to %" GST_PTR_FORMAT, caps);
+-  GST_INFO_OBJECT (pad, "Forcing caps to %" GST_PTR_FORMAT, caps);
 -  g_object_set (GST_OBJECT_PARENT (pad), "caps", caps, NULL);
 -  g_signal_handler_disconnect (pad, *signal_id);
 -  *signal_id = 0;
@@ -3580,8 +3581,8 @@ index 573ea94..0000000
 -  /* missing plugin support */
 -  gst_element_post_message (GST_ELEMENT_CAST (ebin),
 -      gst_missing_encoder_message_new (GST_ELEMENT_CAST (ebin), format));
--  GST_ELEMENT_ERROR (ebin, CORE, MISSING_PLUGIN, (NULL),
--      ("Couldn't create encoder for format %" GST_PTR_FORMAT, format));
+-  GST_ELEMENT_ERROR (ebin, CORE, MISSING_PLUGIN,
+-      ("Couldn't create encoder for format %" GST_PTR_FORMAT, format), (NULL));
 -
 -  gst_caps_unref (format);
 -}
@@ -3795,7 +3796,7 @@ index 573ea94..0000000
 -      sinkpad = gst_element_get_static_pad (sgroup->smartencoder, "sink");
 -    }
 -    gst_caps_unref (tmpcaps);
--    g_object_unref (srcpad);
+-    gst_object_unref (srcpad);
 -  }
 -
 -  srcpad =
@@ -3807,8 +3808,8 @@ index 573ea94..0000000
 -  /* Go straight to splitter */
 -  if (G_UNLIKELY (fast_pad_link (srcpad, sinkpad) != GST_PAD_LINK_OK))
 -    goto passthrough_link_failure;
--  g_object_unref (sinkpad);
--  g_object_unref (srcpad);
+-  gst_object_unref (sinkpad);
+-  gst_object_unref (srcpad);
 -  srcpad = NULL;
 -
 -  /* Path 2 : Conversion / Encoding */
@@ -3828,8 +3829,8 @@ index 573ea94..0000000
 -    srcpad = gst_element_get_static_pad (sgroup->encoder, "src");
 -    if (G_UNLIKELY (fast_pad_link (srcpad, sinkpad) != GST_PAD_LINK_OK))
 -      goto encoder_link_failure;
--    g_object_unref (sinkpad);
--    g_object_unref (srcpad);
+-    gst_object_unref (sinkpad);
+-    gst_object_unref (srcpad);
 -    srcpad = NULL;
 -  } else if (gst_encoding_profile_get_preset (sgroup->profile)
 -      || gst_encoding_profile_get_preset_name (sgroup->profile)) {
@@ -4001,8 +4002,8 @@ index 573ea94..0000000
 -    goto no_splitter_srcpad;
 -  if (G_UNLIKELY (fast_pad_link (srcpad, sinkpad) != GST_PAD_LINK_OK))
 -    goto splitter_encoding_failure;
--  g_object_unref (sinkpad);
--  g_object_unref (srcpad);
+-  gst_object_unref (sinkpad);
+-  gst_object_unref (srcpad);
 -  srcpad = NULL;
 -
 -  /* End of Stream 2 setup */
@@ -4385,8 +4386,8 @@ index 573ea94..0000000
 -    /* missing plugin support */
 -    gst_element_post_message (GST_ELEMENT_CAST (ebin),
 -        gst_missing_encoder_message_new (GST_ELEMENT_CAST (ebin), format));
--    GST_ELEMENT_ERROR (ebin, CORE, MISSING_PLUGIN, (NULL),
--        ("No available muxer for format %" GST_PTR_FORMAT, format));
+-    GST_ELEMENT_ERROR (ebin, CORE, MISSING_PLUGIN,
+-        ("No available muxer for format %" GST_PTR_FORMAT, format), (NULL));
 -    if (format)
 -      gst_caps_unref (format);
 -    return FALSE;

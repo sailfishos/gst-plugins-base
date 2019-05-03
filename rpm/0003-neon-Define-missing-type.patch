@@ -1,0 +1,19 @@
+From 62b985a38b6d56d2d57afa2d4056bb8652b6c993 Fri, 4 Oct 2019 17:27:49 +0200
+From: Andrew Branson <andrew.branson@jollamobile.com>
+Date: Fri, 4 Oct 2019 17:26:12 +0200
+Subject: [PATCH] [neon] Define missing type
+
+
+This is a temporary patch, which should get fixed with a compiler upgrade.
+diff --git a/gst-libs/gst/audio/audio-resampler-neon.h b/gst-libs/gst/audio/audio-resampler-neon.h
+index 5a77d45..e78a0cb 100644
+--- a/gst-libs/gst/audio/audio-resampler-neon.h
++++ b/gst-libs/gst/audio/audio-resampler-neon.h
+@@ -16,6 +16,7 @@
+  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+  * Boston, MA 02110-1301, USA.
+  */
++typedef unsigned long   uint32_t;
+ 
+ static inline void
+ inner_product_gint16_full_1_neon (gint16 * o, const gint16 * a,
