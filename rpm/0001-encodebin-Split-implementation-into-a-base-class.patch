@@ -1,0 +1,1193 @@
+From de2666b63254f01c6da0314be39dd32acd03fba7 Wed, 17 Apr 2019 15:11:50 +0200
+From: Jan Schmidt <jan@centricular.com>
+Date: Fri, 10 Aug 2018 12:53:22 +0200
+Subject: [PATCH] encodebin: Split implementation into a base class
+
+
+Create EncodeBaseBin as a base class for the existing
+encodebin and to allow other implementations.
+
+Rebased onto a move of gstencodebin sources for easier future rebasing.
+
+https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/issues/304
+
+diff --git a/gst/encoding/Makefile.am b/gst/encoding/Makefile.am
+index 9479b69..7100749 100644
+--- a/gst/encoding/Makefile.am
++++ b/gst/encoding/Makefile.am
+@@ -1,10 +1,12 @@
+ plugin_LTLIBRARIES = libgstencoding.la
+ 
+ libgstencoding_la_SOURCES = 	\
++	gstencodebasebin.c		\
+ 	gstencodebin.c		\
+ 	gstsmartencoder.c	\
+ 	gststreamcombiner.c	\
+-	gststreamsplitter.c
++	gststreamsplitter.c	\
++	plugin.c
+ 
+ libgstencoding_la_CFLAGS = $(GST_PLUGINS_BASE_CFLAGS) $(GST_CFLAGS)
+ libgstencoding_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
+@@ -13,6 +15,7 @@
+ 	$(GST_LIBS)
+ 
+ noinst_HEADERS = 		\
++	gstencodebasebin.h		\
+ 	gstencodebin.h		\
+ 	gststreamcombiner.h	\
+ 	gststreamsplitter.h	\
+diff --git a/gst/encoding/gstencodebasebin.c b/gst/encoding/gstencodebasebin.c
+index 573ea94..184ebf7 100644
+--- a/gst/encoding/gstencodebasebin.c
++++ b/gst/encoding/gstencodebasebin.c
+@@ -1,5 +1,6 @@
+-/* GStreamer encoding bin
+- * Copyright (C) 2009 Edward Hervey <edward.hervey@collabora.co.uk>
++/* GStreamer encoding bin base class
++ * Copyright (C) 2016 Jan Schmidt <jan@centricular.com>
++ *           (C) 2009 Edward Hervey <edward.hervey@collabora.co.uk>
+  *           (C) 2009 Nokia Corporation
+  *
+  * This library is free software; you can redistribute it and/or
+@@ -23,75 +24,12 @@
+ #endif
+ 
+ #include <string.h>
+-#include "gstencodebin.h"
++#include <gst/gst-i18n-plugin.h>
++
++#include "gstencodebasebin.h"
+ #include "gstsmartencoder.h"
+ #include "gststreamsplitter.h"
+ #include "gststreamcombiner.h"
+-#include <gst/gst-i18n-plugin.h>
+-
+-/**
+- * SECTION:element-encodebin
+- * @title: encodebin
+- *
+- * EncodeBin provides a bin for encoding/muxing various streams according to
+- * a specified #GstEncodingProfile.
+- *
+- * Based on the profile that was set (via the #GstEncodeBin:profile property),
+- * EncodeBin will internally select and configure the required elements
+- * (encoders, muxers, but also audio and video converters) so that you can
+- * provide it raw or pre-encoded streams of data in input and have your
+- * encoded/muxed/converted stream in output.
+- *
+- * ## Features
+- *
+- * * Automatic encoder and muxer selection based on elements available on the
+- * system.
+- *
+- * * Conversion of raw audio/video streams (scaling, framerate conversion,
+- * colorspace conversion, samplerate conversion) to conform to the profile
+- * output format.
+- *
+- * * Variable number of streams. If the presence property for a stream encoding
+- * profile is 0, you can request any number of sink pads for it via the
+- * standard request pad gstreamer API or the #GstEncodeBin::request-pad action
+- * signal.
+- *
+- * * Avoid reencoding (passthrough). If the input stream is already encoded and is
+- * compatible with what the #GstEncodingProfile expects, then the stream won't
+- * be re-encoded but just passed through downstream to the muxer or the output.
+- *
+- * * Mix pre-encoded and raw streams as input. In addition to the passthrough
+- * feature above, you can feed both raw audio/video *AND* already-encoded data
+- * to a pad. #GstEncodeBin will take care of passing through the compatible
+- * segments and re-encoding the segments of media that need encoding.
+- *
+- * * Standard behaviour is to use a #GstEncodingContainerProfile to have both
+- * encoding and muxing performed. But you can also provide a single stream
+- * profile (like #GstEncodingAudioProfile) to only have the encoding done and
+- * handle the encoded output yourself.
+- *
+- * * Audio imperfection corrections. Incoming audio streams can have non perfect
+- * timestamps (jitter), like the streams coming from ASF files. #GstEncodeBin
+- * will automatically fix those imperfections for you. See
+- * #GstEncodeBin:audio-jitter-tolerance for more details.
+- *
+- * * Variable or Constant video framerate. If your #GstEncodingVideoProfile has
+- * the variableframerate property deactivated (default), then the incoming
+- * raw video stream will be retimestampped in order to produce a constant
+- * framerate.
+- *
+- * * Cross-boundary re-encoding. When feeding compatible pre-encoded streams that
+- * fall on segment boundaries, and for supported formats (right now only H263),
+- * the GOP will be decoded/reencoded when needed to produce an encoded output
+- * that fits exactly within the request GstSegment.
+- *
+- * * Missing plugin support. If a #GstElement is missing to encode/mux to the
+- * request profile formats, a missing-plugin #GstMessage will be posted on the
+- * #GstBus, allowing systems that support the missing-plugin system to offer the
+- * user a way to install the missing element.
+- *
+- */
+-
+ 
+ /* TODO/FIXME
+  *
+@@ -106,20 +44,10 @@
+ #define fast_pad_link(a,b) gst_pad_link_full((a),(b),GST_PAD_LINK_CHECK_NOTHING)
+ #define fast_element_link(a,b) gst_element_link_pads_full((a),"src",(b),"sink",GST_PAD_LINK_CHECK_NOTHING)
+ 
+-typedef enum
+-{
+-  GST_ENCODEBIN_FLAG_NO_AUDIO_CONVERSION = (1 << 0),
+-  GST_ENCODEBIN_FLAG_NO_VIDEO_CONVERSION = (1 << 1)
+-} GstEncodeBinFlags;
+-
+ #define GST_TYPE_ENCODEBIN_FLAGS (gst_encodebin_flags_get_type())
+ GType gst_encodebin_flags_get_type (void);
+ 
+ /* generic templates */
+-static GstStaticPadTemplate muxer_src_template =
+-GST_STATIC_PAD_TEMPLATE ("src", GST_PAD_SRC, GST_PAD_ALWAYS,
+-    GST_STATIC_CAPS_ANY);
+-
+ static GstStaticPadTemplate video_sink_template =
+ GST_STATIC_PAD_TEMPLATE ("video_%u",
+     GST_PAD_SINK,
+@@ -141,61 +69,11 @@
+     GST_PAD_REQUEST,
+     GST_STATIC_CAPS_ANY);
+ 
+-struct _GstEncodeBin
+-{
+-  GstBin parent;
+-
+-  /* the profile field is only valid if it could be entirely setup */
+-  GstEncodingProfile *profile;
+-
+-  GList *streams;               /* List of StreamGroup, not sorted */
+-
+-  GstElement *muxer;
+-  /* Ghostpad with changing target */
+-  GstPad *srcpad;
+-
+-  /* TRUE if in PAUSED/PLAYING */
+-  gboolean active;
+-
+-  /* available muxers, encoders and parsers */
+-  GList *muxers;
+-  GList *formatters;
+-  GList *encoders;
+-  GList *parsers;
+-
+-  /* Increasing counter for unique pad name */
+-  guint last_pad_id;
+-
+-  /* Cached caps for identification */
+-  GstCaps *raw_video_caps;
+-  GstCaps *raw_audio_caps;
+-  /* GstCaps *raw_text_caps; */
+-
+-  guint queue_buffers_max;
+-  guint queue_bytes_max;
+-  guint64 queue_time_max;
+-
+-  guint64 tolerance;
+-  gboolean avoid_reencoding;
+-
+-  GstEncodeBinFlags flags;
+-};
+-
+-struct _GstEncodeBinClass
+-{
+-  GstBinClass parent;
+-
+-  /* Action Signals */
+-  GstPad *(*request_pad) (GstEncodeBin * encodebin, GstCaps * caps);
+-  GstPad *(*request_profile_pad) (GstEncodeBin * encodebin,
+-      const gchar * profilename);
+-};
+-
+ typedef struct _StreamGroup StreamGroup;
+ 
+ struct _StreamGroup
+ {
+-  GstEncodeBin *ebin;
++  GstEncodeBaseBin *ebin;
+   GstEncodingProfile *profile;
+   GstPad *ghostpad;             /* Sink ghostpad */
+   GstElement *inqueue;          /* Queue just after the ghostpad */
+@@ -268,7 +146,7 @@
+   if (g_once_init_enter ((gsize *) & id)) {
+     GType _id;
+ 
+-    _id = g_flags_register_static ("GstEncodeBinFlags", values);
++    _id = g_flags_register_static ("GstEncodeBaseBinFlags", values);
+ 
+     g_once_init_leave ((gsize *) & id, _id);
+   }
+@@ -276,50 +154,52 @@
+   return id;
+ }
+ 
+-static guint gst_encode_bin_signals[LAST_SIGNAL] = { 0 };
++static guint gst_encode_base_bin_signals[LAST_SIGNAL] = { 0 };
+ 
+ static GstStaticCaps default_raw_caps = GST_STATIC_CAPS (DEFAULT_RAW_CAPS);
+ 
+-GST_DEBUG_CATEGORY_STATIC (gst_encode_bin_debug);
+-#define GST_CAT_DEFAULT gst_encode_bin_debug
++GST_DEBUG_CATEGORY_STATIC (gst_encode_base_bin_debug);
++#define GST_CAT_DEFAULT gst_encode_base_bin_debug
+ 
+-G_DEFINE_TYPE (GstEncodeBin, gst_encode_bin, GST_TYPE_BIN);
++G_DEFINE_TYPE (GstEncodeBaseBin, gst_encode_base_bin, GST_TYPE_BIN);
+ 
+-static void gst_encode_bin_dispose (GObject * object);
+-static void gst_encode_bin_set_property (GObject * object, guint prop_id,
++static void gst_encode_base_bin_dispose (GObject * object);
++static void gst_encode_base_bin_set_property (GObject * object, guint prop_id,
+     const GValue * value, GParamSpec * pspec);
+-static void gst_encode_bin_get_property (GObject * object, guint prop_id,
++static void gst_encode_base_bin_get_property (GObject * object, guint prop_id,
+     GValue * value, GParamSpec * pspec);
+-static GstStateChangeReturn gst_encode_bin_change_state (GstElement * element,
+-    GstStateChange transition);
++static GstStateChangeReturn gst_encode_base_bin_change_state (GstElement *
++    element, GstStateChange transition);
+ 
+-static GstPad *gst_encode_bin_request_new_pad (GstElement * element,
++static GstPad *gst_encode_base_bin_request_new_pad (GstElement * element,
+     GstPadTemplate * templ, const gchar * name, const GstCaps * caps);
+-static void gst_encode_bin_release_pad (GstElement * element, GstPad * pad);
++static void gst_encode_base_bin_release_pad (GstElement * element,
++    GstPad * pad);
+ 
+ static gboolean
+-gst_encode_bin_set_profile (GstEncodeBin * ebin, GstEncodingProfile * profile);
+-static void gst_encode_bin_tear_down_profile (GstEncodeBin * ebin);
+-static gboolean gst_encode_bin_setup_profile (GstEncodeBin * ebin,
++gst_encode_base_bin_set_profile (GstEncodeBaseBin * ebin,
++    GstEncodingProfile * profile);
++static void gst_encode_base_bin_tear_down_profile (GstEncodeBaseBin * ebin);
++static gboolean gst_encode_base_bin_setup_profile (GstEncodeBaseBin * ebin,
+     GstEncodingProfile * profile);
+ 
+-static StreamGroup *_create_stream_group (GstEncodeBin * ebin,
++static StreamGroup *_create_stream_group (GstEncodeBaseBin * ebin,
+     GstEncodingProfile * sprof, const gchar * sinkpadname, GstCaps * sinkcaps,
+     gboolean * encoder_not_found);
+-static void stream_group_remove (GstEncodeBin * ebin, StreamGroup * sgroup);
+-static void stream_group_free (GstEncodeBin * ebin, StreamGroup * sgroup);
+-static GstPad *gst_encode_bin_request_pad_signal (GstEncodeBin * encodebin,
+-    GstCaps * caps);
+-static GstPad *gst_encode_bin_request_profile_pad_signal (GstEncodeBin *
+-    encodebin, const gchar * profilename);
++static void stream_group_remove (GstEncodeBaseBin * ebin, StreamGroup * sgroup);
++static void stream_group_free (GstEncodeBaseBin * ebin, StreamGroup * sgroup);
++static GstPad *gst_encode_base_bin_request_pad_signal (GstEncodeBaseBin *
++    encodebin, GstCaps * caps);
++static GstPad *gst_encode_base_bin_request_profile_pad_signal (GstEncodeBaseBin
++    * encodebin, const gchar * profilename);
+ 
+-static inline GstElement *_get_formatter (GstEncodeBin * ebin,
++static inline GstElement *_get_formatter (GstEncodeBaseBin * ebin,
+     GstEncodingProfile * sprof);
+-static void _post_missing_plugin_message (GstEncodeBin * ebin,
++static void _post_missing_plugin_message (GstEncodeBaseBin * ebin,
+     GstEncodingProfile * prof);
+ 
+ static void
+-gst_encode_bin_class_init (GstEncodeBinClass * klass)
++gst_encode_base_bin_class_init (GstEncodeBaseBinClass * klass)
+ {
+   GObjectClass *gobject_klass;
+   GstElementClass *gstelement_klass;
+@@ -327,14 +207,17 @@
+   gobject_klass = (GObjectClass *) klass;
+   gstelement_klass = (GstElementClass *) klass;
+ 
+-  gobject_klass->dispose = gst_encode_bin_dispose;
+-  gobject_klass->set_property = gst_encode_bin_set_property;
+-  gobject_klass->get_property = gst_encode_bin_get_property;
++  GST_DEBUG_CATEGORY_INIT (gst_encode_base_bin_debug, "encodebasebin", 0,
++      "encoder base bin");
++
++  gobject_klass->dispose = gst_encode_base_bin_dispose;
++  gobject_klass->set_property = gst_encode_base_bin_set_property;
++  gobject_klass->get_property = gst_encode_base_bin_get_property;
+ 
+   /* Properties */
+ 
+   /**
+-   * GstEncodeBin:profile:
++   * GstEncodeBaseBin:profile:
+    *
+    * The #GstEncodingProfile to use. This property must be set before going
+    * to %GST_STATE_PAUSED or higher.
+@@ -374,7 +257,7 @@
+           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+ 
+   /**
+-   * GstEncodeBin:flags
++   * GstEncodeBaseBin:flags
+    *
+    * Control the behaviour of encodebin.
+    */
+@@ -385,8 +268,8 @@
+ 
+   /* Signals */
+   /**
+-   * GstEncodeBin::request-pad
+-   * @encodebin: a #GstEncodeBin instance
++   * GstEncodeBaseBin::request-pad
++   * @encodebin: a #GstEncodeBaseBin instance
+    * @caps: a #GstCaps
+    *
+    * Use this method to request an unused sink request #GstPad that can take the
+@@ -396,15 +279,15 @@
+    * Returns: A compatible #GstPad, or %NULL if no compatible #GstPad could be
+    * created or is available.
+    */
+-  gst_encode_bin_signals[SIGNAL_REQUEST_PAD] =
++  gst_encode_base_bin_signals[SIGNAL_REQUEST_PAD] =
+       g_signal_new ("request-pad", G_TYPE_FROM_CLASS (klass),
+-      G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION, G_STRUCT_OFFSET (GstEncodeBinClass,
+-          request_pad), NULL, NULL, g_cclosure_marshal_generic,
+-      GST_TYPE_PAD, 1, GST_TYPE_CAPS);
++      G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
++      G_STRUCT_OFFSET (GstEncodeBaseBinClass, request_pad), NULL, NULL,
++      g_cclosure_marshal_generic, GST_TYPE_PAD, 1, GST_TYPE_CAPS);
+ 
+   /**
+-   * GstEncodeBin::request-profile-pad
+-   * @encodebin: a #GstEncodeBin instance
++   * GstEncodeBaseBin::request-profile-pad
++   * @encodebin: a #GstEncodeBaseBin instance
+    * @profilename: the name of a #GstEncodingProfile
+    *
+    * Use this method to request an unused sink request #GstPad from the profile
+@@ -414,18 +297,16 @@
+    * Returns: A compatible #GstPad, or %NULL if no compatible #GstPad could be
+    * created or is available.
+    */
+-  gst_encode_bin_signals[SIGNAL_REQUEST_PROFILE_PAD] =
++  gst_encode_base_bin_signals[SIGNAL_REQUEST_PROFILE_PAD] =
+       g_signal_new ("request-profile-pad", G_TYPE_FROM_CLASS (klass),
+-      G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION, G_STRUCT_OFFSET (GstEncodeBinClass,
+-          request_profile_pad), NULL, NULL, g_cclosure_marshal_generic,
+-      GST_TYPE_PAD, 1, G_TYPE_STRING);
++      G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
++      G_STRUCT_OFFSET (GstEncodeBaseBinClass, request_profile_pad), NULL, NULL,
++      g_cclosure_marshal_generic, GST_TYPE_PAD, 1, G_TYPE_STRING);
+ 
+-  klass->request_pad = gst_encode_bin_request_pad_signal;
+-  klass->request_profile_pad = gst_encode_bin_request_profile_pad_signal;
++  klass->request_pad = gst_encode_base_bin_request_pad_signal;
++  klass->request_profile_pad = gst_encode_base_bin_request_profile_pad_signal;
+ 
+   gst_element_class_add_static_pad_template (gstelement_klass,
+-      &muxer_src_template);
+-  gst_element_class_add_static_pad_template (gstelement_klass,
+       &video_sink_template);
+   gst_element_class_add_static_pad_template (gstelement_klass,
+       &audio_sink_template);
+@@ -434,23 +315,17 @@
+       &private_sink_template);
+ 
+   gstelement_klass->change_state =
+-      GST_DEBUG_FUNCPTR (gst_encode_bin_change_state);
++      GST_DEBUG_FUNCPTR (gst_encode_base_bin_change_state);
+   gstelement_klass->request_new_pad =
+-      GST_DEBUG_FUNCPTR (gst_encode_bin_request_new_pad);
++      GST_DEBUG_FUNCPTR (gst_encode_base_bin_request_new_pad);
+   gstelement_klass->release_pad =
+-      GST_DEBUG_FUNCPTR (gst_encode_bin_release_pad);
+-
+-  gst_element_class_set_static_metadata (gstelement_klass,
+-      "Encoder Bin",
+-      "Generic/Bin/Encoder",
+-      "Convenience encoding/muxing element",
+-      "Edward Hervey <edward.hervey@collabora.co.uk>");
++      GST_DEBUG_FUNCPTR (gst_encode_base_bin_release_pad);
+ }
+ 
+ static void
+-gst_encode_bin_dispose (GObject * object)
++gst_encode_base_bin_dispose (GObject * object)
+ {
+-  GstEncodeBin *ebin = (GstEncodeBin *) object;
++  GstEncodeBaseBin *ebin = (GstEncodeBaseBin *) object;
+ 
+   if (ebin->muxers)
+     gst_plugin_feature_list_free (ebin->muxers);
+@@ -468,7 +343,7 @@
+     gst_plugin_feature_list_free (ebin->parsers);
+   ebin->parsers = NULL;
+ 
+-  gst_encode_bin_tear_down_profile (ebin);
++  gst_encode_base_bin_tear_down_profile (ebin);
+ 
+   if (ebin->raw_video_caps)
+     gst_caps_unref (ebin->raw_video_caps);
+@@ -479,58 +354,50 @@
+   /* if (ebin->raw_text_caps) */
+   /*   gst_caps_unref (ebin->raw_text_caps); */
+ 
+-  G_OBJECT_CLASS (gst_encode_bin_parent_class)->dispose (object);
++  G_OBJECT_CLASS (gst_encode_base_bin_parent_class)->dispose (object);
+ }
+ 
+ static void
+-gst_encode_bin_init (GstEncodeBin * encode_bin)
++gst_encode_base_bin_init (GstEncodeBaseBin * encode_base_bin)
+ {
+-  GstPadTemplate *tmpl;
+-
+-  encode_bin->muxers =
++  encode_base_bin->muxers =
+       gst_element_factory_list_get_elements (GST_ELEMENT_FACTORY_TYPE_MUXER,
+       GST_RANK_MARGINAL);
+ 
+-  encode_bin->formatters =
++  encode_base_bin->formatters =
+       gst_element_factory_list_get_elements (GST_ELEMENT_FACTORY_TYPE_FORMATTER,
+       GST_RANK_SECONDARY);
+ 
+-  encode_bin->encoders =
++  encode_base_bin->encoders =
+       gst_element_factory_list_get_elements (GST_ELEMENT_FACTORY_TYPE_ENCODER,
+       GST_RANK_MARGINAL);
+ 
+-  encode_bin->parsers =
++  encode_base_bin->parsers =
+       gst_element_factory_list_get_elements (GST_ELEMENT_FACTORY_TYPE_PARSER,
+       GST_RANK_MARGINAL);
+ 
+-  encode_bin->raw_video_caps = gst_caps_from_string ("video/x-raw");
+-  encode_bin->raw_audio_caps = gst_caps_from_string ("audio/x-raw");
+-  /* encode_bin->raw_text_caps = */
++  encode_base_bin->raw_video_caps = gst_caps_from_string ("video/x-raw");
++  encode_base_bin->raw_audio_caps = gst_caps_from_string ("audio/x-raw");
++  /* encode_base_bin->raw_text_caps = */
+   /*     gst_caps_from_string ("text/x-raw"); */
+ 
+-  encode_bin->queue_buffers_max = DEFAULT_QUEUE_BUFFERS_MAX;
+-  encode_bin->queue_bytes_max = DEFAULT_QUEUE_BYTES_MAX;
+-  encode_bin->queue_time_max = DEFAULT_QUEUE_TIME_MAX;
+-  encode_bin->tolerance = DEFAULT_AUDIO_JITTER_TOLERANCE;
+-  encode_bin->avoid_reencoding = DEFAULT_AVOID_REENCODING;
+-  encode_bin->flags = DEFAULT_FLAGS;
+-
+-  tmpl = gst_static_pad_template_get (&muxer_src_template);
+-  encode_bin->srcpad = gst_ghost_pad_new_no_target_from_template ("src", tmpl);
+-  gst_object_unref (tmpl);
+-  gst_pad_set_active (encode_bin->srcpad, TRUE);
+-  gst_element_add_pad (GST_ELEMENT_CAST (encode_bin), encode_bin->srcpad);
++  encode_base_bin->queue_buffers_max = DEFAULT_QUEUE_BUFFERS_MAX;
++  encode_base_bin->queue_bytes_max = DEFAULT_QUEUE_BYTES_MAX;
++  encode_base_bin->queue_time_max = DEFAULT_QUEUE_TIME_MAX;
++  encode_base_bin->tolerance = DEFAULT_AUDIO_JITTER_TOLERANCE;
++  encode_base_bin->avoid_reencoding = DEFAULT_AVOID_REENCODING;
++  encode_base_bin->flags = DEFAULT_FLAGS;
+ }
+ 
+ static void
+-gst_encode_bin_set_property (GObject * object, guint prop_id,
++gst_encode_base_bin_set_property (GObject * object, guint prop_id,
+     const GValue * value, GParamSpec * pspec)
+ {
+-  GstEncodeBin *ebin = (GstEncodeBin *) object;
++  GstEncodeBaseBin *ebin = (GstEncodeBaseBin *) object;
+ 
+   switch (prop_id) {
+     case PROP_PROFILE:
+-      gst_encode_bin_set_profile (ebin,
++      gst_encode_base_bin_set_profile (ebin,
+           (GstEncodingProfile *) g_value_get_object (value));
+       break;
+     case PROP_QUEUE_BUFFERS_MAX:
+@@ -558,10 +425,10 @@
+ }
+ 
+ static void
+-gst_encode_bin_get_property (GObject * object, guint prop_id,
++gst_encode_base_bin_get_property (GObject * object, guint prop_id,
+     GValue * value, GParamSpec * pspec)
+ {
+-  GstEncodeBin *ebin = (GstEncodeBin *) object;
++  GstEncodeBaseBin *ebin = (GstEncodeBaseBin *) object;
+ 
+   switch (prop_id) {
+     case PROP_PROFILE:
+@@ -604,7 +471,7 @@
+ /* Returns the number of time a given stream profile is currently used
+  * in encodebin */
+ static inline guint
+-stream_profile_used_count (GstEncodeBin * ebin, GstEncodingProfile * sprof)
++stream_profile_used_count (GstEncodeBaseBin * ebin, GstEncodingProfile * sprof)
+ {
+   guint nbprofused = 0;
+   GList *tmp;
+@@ -620,7 +487,7 @@
+ }
+ 
+ static inline GstEncodingProfile *
+-next_unused_stream_profile (GstEncodeBin * ebin, GType ptype,
++next_unused_stream_profile (GstEncodeBaseBin * ebin, GType ptype,
+     const gchar * name, GstCaps * caps, GstEncodingProfile * previous_profile)
+ {
+   GST_DEBUG_OBJECT (ebin, "ptype:%s, caps:%" GST_PTR_FORMAT,
+@@ -715,7 +582,7 @@
+ }
+ 
+ static GstPad *
+-request_pad_for_stream (GstEncodeBin * encodebin, GType ptype,
++request_pad_for_stream (GstEncodeBaseBin * encodebin, GType ptype,
+     const gchar * name, GstCaps * caps)
+ {
+   StreamGroup *sgroup = NULL;
+@@ -774,10 +641,10 @@
+ }
+ 
+ static GstPad *
+-gst_encode_bin_request_new_pad (GstElement * element,
++gst_encode_base_bin_request_new_pad (GstElement * element,
+     GstPadTemplate * templ, const gchar * name, const GstCaps * caps)
+ {
+-  GstEncodeBin *ebin = (GstEncodeBin *) element;
++  GstEncodeBaseBin *ebin = (GstEncodeBaseBin *) element;
+   GstPad *res = NULL;
+ 
+   GST_DEBUG_OBJECT (element, "templ:%s, name:%s", templ->name_template, name);
+@@ -809,7 +676,8 @@
+ }
+ 
+ static GstPad *
+-gst_encode_bin_request_pad_signal (GstEncodeBin * encodebin, GstCaps * caps)
++gst_encode_base_bin_request_pad_signal (GstEncodeBaseBin * encodebin,
++    GstCaps * caps)
+ {
+   GstPad *pad = request_pad_for_stream (encodebin, G_TYPE_NONE, NULL, caps);
+ 
+@@ -817,7 +685,7 @@
+ }
+ 
+ static GstPad *
+-gst_encode_bin_request_profile_pad_signal (GstEncodeBin * encodebin,
++gst_encode_base_bin_request_profile_pad_signal (GstEncodeBaseBin * encodebin,
+     const gchar * profilename)
+ {
+   GstPad *pad =
+@@ -827,7 +695,7 @@
+ }
+ 
+ static inline StreamGroup *
+-find_stream_group_from_pad (GstEncodeBin * ebin, GstPad * pad)
++find_stream_group_from_pad (GstEncodeBaseBin * ebin, GstPad * pad)
+ {
+   GList *tmp;
+ 
+@@ -841,9 +709,9 @@
+ }
+ 
+ static void
+-gst_encode_bin_release_pad (GstElement * element, GstPad * pad)
++gst_encode_base_bin_release_pad (GstElement * element, GstPad * pad)
+ {
+-  GstEncodeBin *ebin = (GstEncodeBin *) element;
++  GstEncodeBaseBin *ebin = (GstEncodeBaseBin *) element;
+   StreamGroup *sgroup;
+ 
+   /* Find the associated StreamGroup */
+@@ -866,7 +734,7 @@
+ 
+ /* Create a parser for the given stream profile */
+ static inline GstElement *
+-_get_parser (GstEncodeBin * ebin, GstEncodingProfile * sprof)
++_get_parser (GstEncodeBaseBin * ebin, GstEncodingProfile * sprof)
+ {
+   GList *parsers1, *parsers, *tmp;
+   GstElement *parser = NULL;
+@@ -948,7 +816,7 @@
+ 
+ /* Create the encoder for the given stream profile */
+ static inline GstElement *
+-_get_encoder (GstEncodeBin * ebin, GstEncodingProfile * sprof)
++_get_encoder (GstEncodeBaseBin * ebin, GstEncodingProfile * sprof)
+ {
+   GList *encoders, *tmp;
+   GstElement *encoder = NULL;
+@@ -1052,7 +920,7 @@
+ 
+ /* FIXME : Improve algorithm for finding compatible muxer sink pad */
+ static inline GstPad *
+-get_compatible_muxer_sink_pad (GstEncodeBin * ebin, GstElement * encoder,
++get_compatible_muxer_sink_pad (GstEncodeBaseBin * ebin, GstElement * encoder,
+     GstCaps * sinkcaps)
+ {
+   GstPad *sinkpad;
+@@ -1154,7 +1022,8 @@
+ }
+ 
+ static void
+-_post_missing_plugin_message (GstEncodeBin * ebin, GstEncodingProfile * prof)
++_post_missing_plugin_message (GstEncodeBaseBin * ebin,
++    GstEncodingProfile * prof)
+ {
+   GstCaps *format;
+   format = gst_encoding_profile_get_format (prof);
+@@ -1178,7 +1047,7 @@
+ _missing_plugin_probe (GstPad * pad, GstPadProbeInfo * info, gpointer udata)
+ {
+   StreamGroup *sgroup = udata;
+-  GstEncodeBin *ebin = sgroup->ebin;
++  GstEncodeBaseBin *ebin = sgroup->ebin;
+ 
+   _post_missing_plugin_message (ebin, sgroup->profile);
+ 
+@@ -1186,7 +1055,7 @@
+ }
+ 
+ static void
+-_set_up_fake_encoder_pad_probe (GstEncodeBin * ebin, StreamGroup * sgroup)
++_set_up_fake_encoder_pad_probe (GstEncodeBaseBin * ebin, StreamGroup * sgroup)
+ {
+   GstPad *pad = gst_element_get_static_pad (sgroup->fakesink, "sink");
+ 
+@@ -1206,7 +1075,7 @@
+  * the encoder could not be found
+  */
+ static StreamGroup *
+-_create_stream_group (GstEncodeBin * ebin, GstEncodingProfile * sprof,
++_create_stream_group (GstEncodeBaseBin * ebin, GstEncodingProfile * sprof,
+     const gchar * sinkpadname, GstCaps * sinkcaps, gboolean * encoder_not_found)
+ {
+   StreamGroup *sgroup = NULL;
+@@ -1762,7 +1631,7 @@
+ }
+ 
+ static inline GstElement *
+-_get_formatter (GstEncodeBin * ebin, GstEncodingProfile * sprof)
++_get_formatter (GstEncodeBaseBin * ebin, GstEncodingProfile * sprof)
+ {
+   GList *formatters, *tmpfmtr;
+   GstElement *formatter = NULL;
+@@ -1830,7 +1699,7 @@
+ }
+ 
+ static inline GstElement *
+-_get_muxer (GstEncodeBin * ebin)
++_get_muxer (GstEncodeBaseBin * ebin)
+ {
+   GList *muxers, *formatters, *tmpmux;
+   GstElement *muxer = NULL;
+@@ -1906,7 +1775,7 @@
+ }
+ 
+ static gboolean
+-create_elements_and_pads (GstEncodeBin * ebin)
++create_elements_and_pads (GstEncodeBaseBin * ebin)
+ {
+   gboolean ret = TRUE;
+   GstElement *muxer = NULL;
+@@ -2029,7 +1898,7 @@
+ }
+ 
+ static void
+-stream_group_free (GstEncodeBin * ebin, StreamGroup * sgroup)
++stream_group_free (GstEncodeBaseBin * ebin, StreamGroup * sgroup)
+ {
+   GList *tmp;
+   GstPad *tmppad;
+@@ -2184,7 +2053,7 @@
+ }
+ 
+ static void
+-stream_group_remove (GstEncodeBin * ebin, StreamGroup * sgroup)
++stream_group_remove (GstEncodeBaseBin * ebin, StreamGroup * sgroup)
+ {
+   ebin->streams = g_list_remove (ebin->streams, sgroup);
+ 
+@@ -2192,7 +2061,7 @@
+ }
+ 
+ static void
+-gst_encode_bin_tear_down_profile (GstEncodeBin * ebin)
++gst_encode_base_bin_tear_down_profile (GstEncodeBaseBin * ebin)
+ {
+   if (G_UNLIKELY (ebin->profile == NULL))
+     return;
+@@ -2219,7 +2088,8 @@
+ }
+ 
+ static gboolean
+-gst_encode_bin_setup_profile (GstEncodeBin * ebin, GstEncodingProfile * profile)
++gst_encode_base_bin_setup_profile (GstEncodeBaseBin * ebin,
++    GstEncodingProfile * profile)
+ {
+   gboolean res;
+ 
+@@ -2235,13 +2105,14 @@
+   /* Create elements */
+   res = create_elements_and_pads (ebin);
+   if (!res)
+-    gst_encode_bin_tear_down_profile (ebin);
++    gst_encode_base_bin_tear_down_profile (ebin);
+ 
+   return res;
+ }
+ 
+ static gboolean
+-gst_encode_bin_set_profile (GstEncodeBin * ebin, GstEncodingProfile * profile)
++gst_encode_base_bin_set_profile (GstEncodeBaseBin * ebin,
++    GstEncodingProfile * profile)
+ {
+   g_return_val_if_fail (GST_IS_ENCODING_PROFILE (profile), FALSE);
+ 
+@@ -2255,21 +2126,21 @@
+ 
+   /* If we're not active, we can deactivate the previous profile */
+   if (ebin->profile) {
+-    gst_encode_bin_tear_down_profile (ebin);
++    gst_encode_base_bin_tear_down_profile (ebin);
+   }
+ 
+-  return gst_encode_bin_setup_profile (ebin, profile);
++  return gst_encode_base_bin_setup_profile (ebin, profile);
+ }
+ 
+ static inline gboolean
+-gst_encode_bin_activate (GstEncodeBin * ebin)
++gst_encode_base_bin_activate (GstEncodeBaseBin * ebin)
+ {
+   ebin->active = ebin->profile != NULL;
+   return ebin->active;
+ }
+ 
+ static void
+-gst_encode_bin_deactivate (GstEncodeBin * ebin)
++gst_encode_base_bin_deactivate (GstEncodeBaseBin * ebin)
+ {
+   GList *tmp;
+ 
+@@ -2287,15 +2158,16 @@
+ }
+ 
+ static GstStateChangeReturn
+-gst_encode_bin_change_state (GstElement * element, GstStateChange transition)
++gst_encode_base_bin_change_state (GstElement * element,
++    GstStateChange transition)
+ {
+   GstStateChangeReturn ret;
+-  GstEncodeBin *ebin = (GstEncodeBin *) element;
++  GstEncodeBaseBin *ebin = (GstEncodeBaseBin *) element;
+ 
+   switch (transition) {
+     case GST_STATE_CHANGE_READY_TO_PAUSED:
+     case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
+-      if (!gst_encode_bin_activate (ebin)) {
++      if (!gst_encode_base_bin_activate (ebin)) {
+         ret = GST_STATE_CHANGE_FAILURE;
+         goto beach;
+       }
+@@ -2305,14 +2177,14 @@
+   }
+ 
+   ret =
+-      GST_ELEMENT_CLASS (gst_encode_bin_parent_class)->change_state (element,
+-      transition);
++      GST_ELEMENT_CLASS (gst_encode_base_bin_parent_class)->change_state
++      (element, transition);
+   if (ret == GST_STATE_CHANGE_FAILURE)
+     goto beach;
+ 
+   switch (transition) {
+     case GST_STATE_CHANGE_PAUSED_TO_READY:
+-      gst_encode_bin_deactivate (ebin);
++      gst_encode_base_bin_deactivate (ebin);
+       break;
+     default:
+       break;
+@@ -2321,31 +2193,3 @@
+ beach:
+   return ret;
+ }
+-
+-
+-static gboolean
+-plugin_init (GstPlugin * plugin)
+-{
+-  gboolean res;
+-
+-  GST_DEBUG_CATEGORY_INIT (gst_encode_bin_debug, "encodebin", 0, "encoder bin");
+-
+-#ifdef ENABLE_NLS
+-  GST_DEBUG ("binding text domain %s to locale dir %s", GETTEXT_PACKAGE,
+-      LOCALEDIR);
+-  bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+-  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+-#endif /* ENABLE_NLS */
+-
+-
+-  res = gst_element_register (plugin, "encodebin", GST_RANK_NONE,
+-      GST_TYPE_ENCODE_BIN);
+-
+-  return res;
+-}
+-
+-GST_PLUGIN_DEFINE (GST_VERSION_MAJOR,
+-    GST_VERSION_MINOR,
+-    encoding,
+-    "various encoding-related elements", plugin_init, VERSION, GST_LICENSE,
+-    GST_PACKAGE_NAME, GST_PACKAGE_ORIGIN)
+diff --git a/gst/encoding/gstencodebasebin.h b/gst/encoding/gstencodebasebin.h
+index 021e690..78ce3d9 100644
+--- a/gst/encoding/gstencodebasebin.h
++++ b/gst/encoding/gstencodebasebin.h
+@@ -18,21 +18,77 @@
+  * Boston, MA 02110-1301, USA.
+  */
+ 
+-#ifndef __GST_ENCODEBIN_H__
+-#define __GST_ENCODEBIN_H__
++#ifndef __GST_ENCODEBASEBIN_H__
++#define __GST_ENCODEBASEBIN_H__
+ 
+ #include <gst/gst.h>
+ #include <gst/pbutils/pbutils.h>
+ 
+-#define GST_TYPE_ENCODE_BIN               (gst_encode_bin_get_type())
+-#define GST_ENCODE_BIN(obj)               (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_ENCODE_BIN,GstEncodeBin))
+-#define GST_ENCODE_BIN_CLASS(klass)       (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_ENCODE_BIN,GstEncodeBinClass))
+-#define GST_IS_ENCODE_BIN(obj)            (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_ENCODE_BIN))
+-#define GST_IS_ENCODE_BIN_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_ENCODE_BIN))
++#define GST_TYPE_ENCODE_BASE_BIN               (gst_encode_base_bin_get_type())
++#define GST_ENCODE_BASE_BIN(obj)               (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_ENCODE_BASE_BIN,GstEncodeBaseBin))
++#define GST_ENCODE_BASE_BIN_CLASS(klass)       (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_ENCODE_BASE_BIN,GstEncodeBaseBinClass))
++#define GST_IS_ENCODE_BASE_BIN(obj)            (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_ENCODE_BASE_BIN))
++#define GST_IS_ENCODE_BASE_BIN_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_ENCODE_BASE_BIN))
+ 
+-typedef struct _GstEncodeBin GstEncodeBin;
+-typedef struct _GstEncodeBinClass GstEncodeBinClass;
++typedef struct _GstEncodeBaseBin GstEncodeBaseBin;
++typedef struct _GstEncodeBaseBinClass GstEncodeBaseBinClass;
+ 
+-GType gst_encode_bin_get_type(void);
++typedef enum
++{
++  GST_ENCODEBIN_FLAG_NO_AUDIO_CONVERSION = (1 << 0),
++  GST_ENCODEBIN_FLAG_NO_VIDEO_CONVERSION = (1 << 1)
++} GstEncodeBaseBinFlags;
++
++struct _GstEncodeBaseBin
++{
++  GstBin parent;
++
++  /* the profile field is only valid if it could be entirely setup */
++  GstEncodingProfile *profile;
++
++  GList *streams;               /* List of StreamGroup, not sorted */
++
++  GstElement *muxer;
++  /* Ghostpad with changing target */
++  GstPad *srcpad;
++
++  /* TRUE if in PAUSED/PLAYING */
++  gboolean active;
++
++  /* available muxers, encoders and parsers */
++  GList *muxers;
++  GList *formatters;
++  GList *encoders;
++  GList *parsers;
++
++  /* Increasing counter for unique pad name */
++  guint last_pad_id;
++
++  /* Cached caps for identification */
++  GstCaps *raw_video_caps;
++  GstCaps *raw_audio_caps;
++  /* GstCaps *raw_text_caps; */
++
++  guint queue_buffers_max;
++  guint queue_bytes_max;
++  guint64 queue_time_max;
++
++  guint64 tolerance;
++  gboolean avoid_reencoding;
++
++  GstEncodeBaseBinFlags flags;
++};
++
++struct _GstEncodeBaseBinClass
++{
++  GstBinClass parent;
++
++  /* Action Signals */
++  GstPad *(*request_pad) (GstEncodeBaseBin * encodebin, GstCaps * caps);
++  GstPad *(*request_profile_pad) (GstEncodeBaseBin * encodebin,
++      const gchar * profilename);
++};
++
++GType gst_encode_base_bin_get_type(void);
+ 
+ #endif /* __GST_ENCODEBIN_H__ */
+diff --git a/gst/encoding/gstencodebin.c b/gst/encoding/gstencodebin.c
+new file mode 100644
+index 0000000..1cfd366
+--- /dev/null
++++ b/gst/encoding/gstencodebin.c
+@@ -0,0 +1,128 @@
++/* GStreamer encoding bin
++ * Copyright (C) 2016 Jan Schmidt <jan@centricular.com>
++ *           (C) 2009 Edward Hervey <edward.hervey@collabora.co.uk>
++ *           (C) 2009 Nokia Corporation
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
++ * Boston, MA 02110-1301, USA.
++ */
++
++#ifdef HAVE_CONFIG_H
++#include "config.h"
++#endif
++
++#include <string.h>
++#include "gstencodebasebin.h"
++#include "gstencodebin.h"
++
++/**
++ * SECTION:element-encodebin
++ * @title: encodebin
++ *
++ * EncodeBin provides a bin for encoding/muxing various streams according to
++ * a specified #GstEncodingProfile.
++ *
++ * Based on the profile that was set (via the #GstEncodeBin:profile property),
++ * EncodeBin will internally select and configure the required elements
++ * (encoders, muxers, but also audio and video converters) so that you can
++ * provide it raw or pre-encoded streams of data in input and have your
++ * encoded/muxed/converted stream in output.
++ *
++ * ## Features
++ *
++ * * Automatic encoder and muxer selection based on elements available on the
++ * system.
++ *
++ * * Conversion of raw audio/video streams (scaling, framerate conversion,
++ * colorspace conversion, samplerate conversion) to conform to the profile
++ * output format.
++ *
++ * * Variable number of streams. If the presence property for a stream encoding
++ * profile is 0, you can request any number of sink pads for it via the
++ * standard request pad gstreamer API or the #GstEncodeBin::request-pad action
++ * signal.
++ *
++ * * Avoid reencoding (passthrough). If the input stream is already encoded and is
++ * compatible with what the #GstEncodingProfile expects, then the stream won't
++ * be re-encoded but just passed through downstream to the muxer or the output.
++ *
++ * * Mix pre-encoded and raw streams as input. In addition to the passthrough
++ * feature above, you can feed both raw audio/video *AND* already-encoded data
++ * to a pad. #GstEncodeBin will take care of passing through the compatible
++ * segments and re-encoding the segments of media that need encoding.
++ *
++ * * Standard behaviour is to use a #GstEncodingContainerProfile to have both
++ * encoding and muxing performed. But you can also provide a single stream
++ * profile (like #GstEncodingAudioProfile) to only have the encoding done and
++ * handle the encoded output yourself.
++ *
++ * * Audio imperfection corrections. Incoming audio streams can have non perfect
++ * timestamps (jitter), like the streams coming from ASF files. #GstEncodeBin
++ * will automatically fix those imperfections for you. See
++ * #GstEncodeBin:audio-jitter-tolerance for more details.
++ *
++ * * Variable or Constant video framerate. If your #GstEncodingVideoProfile has
++ * the variableframerate property deactivated (default), then the incoming
++ * raw video stream will be retimestampped in order to produce a constant
++ * framerate.
++ *
++ * * Cross-boundary re-encoding. When feeding compatible pre-encoded streams that
++ * fall on segment boundaries, and for supported formats (right now only H263),
++ * the GOP will be decoded/reencoded when needed to produce an encoded output
++ * that fits exactly within the request GstSegment.
++ *
++ * * Missing plugin support. If a #GstElement is missing to encode/mux to the
++ * request profile formats, a missing-plugin #GstMessage will be posted on the
++ * #GstBus, allowing systems that support the missing-plugin system to offer the
++ * user a way to install the missing element.
++ *
++ */
++
++G_DEFINE_TYPE (GstEncodeBin, gst_encode_bin, GST_TYPE_ENCODE_BASE_BIN);
++
++static GstStaticPadTemplate muxer_src_template =
++GST_STATIC_PAD_TEMPLATE ("src", GST_PAD_SRC, GST_PAD_ALWAYS,
++    GST_STATIC_CAPS_ANY);
++
++static void
++gst_encode_bin_class_init (GstEncodeBinClass * klass)
++{
++  GstElementClass *gstelement_klass = (GstElementClass *) klass;
++
++  gst_element_class_add_static_pad_template (gstelement_klass,
++      &muxer_src_template);
++
++  gst_element_class_set_static_metadata (gstelement_klass,
++      "Encoder Bin",
++      "Generic/Bin/Encoder",
++      "Convenience encoding/muxing element",
++      "Edward Hervey <edward.hervey@collabora.co.uk>");
++}
++
++static void
++
++gst_encode_bin_init (GstEncodeBin * encode_bin)
++{
++  GstEncodeBaseBin *encode_base_bin = (GstEncodeBaseBin *) (encode_bin);
++  GstPadTemplate *tmpl;
++
++  tmpl = gst_static_pad_template_get (&muxer_src_template);
++  encode_base_bin->srcpad =
++      gst_ghost_pad_new_no_target_from_template ("src", tmpl);
++  gst_object_unref (tmpl);
++  gst_pad_set_active (encode_base_bin->srcpad, TRUE);
++  gst_element_add_pad (GST_ELEMENT_CAST (encode_base_bin),
++      encode_base_bin->srcpad);
++}
+diff --git a/gst/encoding/gstencodebin.h b/gst/encoding/gstencodebin.h
+new file mode 100644
+index 0000000..6fabfb2
+--- /dev/null
++++ b/gst/encoding/gstencodebin.h
+@@ -0,0 +1,50 @@
++/* GStreamer encoding bin
++ * Copyright (C) 2009 Edward Hervey <edward.hervey@collabora.co.uk>
++ *           (C) 2009 Nokia Corporation
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
++ * Boston, MA 02110-1301, USA.
++ */
++
++#ifndef __GST_ENCODEBIN_H__
++#define __GST_ENCODEBIN_H__
++
++#include <gst/gst.h>
++#include <gst/pbutils/pbutils.h>
++
++#include "gstencodebasebin.h"
++
++#define GST_TYPE_ENCODE_BIN               (gst_encode_bin_get_type())
++#define GST_ENCODE_BIN(obj)               (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_ENCODE_BIN,GstEncodeBin))
++#define GST_ENCODE_BIN_CLASS(klass)       (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_ENCODE_BIN,GstEncodeBinClass))
++#define GST_IS_ENCODE_BIN(obj)            (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_ENCODE_BIN))
++#define GST_IS_ENCODE_BIN_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_ENCODE_BIN))
++
++typedef struct _GstEncodeBin GstEncodeBin;
++typedef struct _GstEncodeBinClass GstEncodeBinClass;
++
++struct _GstEncodeBin
++{
++  GstEncodeBaseBin parent;
++};
++
++struct _GstEncodeBinClass
++{
++  GstEncodeBaseBinClass parent;
++};
++
++GType gst_encode_bin_get_type(void);
++
++#endif /* __GST_ENCODEBIN_H__ */
+diff --git a/gst/encoding/meson.build b/gst/encoding/meson.build
+index bab3f7f..3e34018 100644
+--- a/gst/encoding/meson.build
++++ b/gst/encoding/meson.build
+@@ -1,7 +1,9 @@
+-encoding_sources = ['gstencodebin.c',
++encoding_sources = ['gstencodebasebin.c',
++  'gstencodebin.c',
+   'gstsmartencoder.c',
+   'gststreamcombiner.c',
+   'gststreamsplitter.c',
++  'plugin.c'
+   ]
+ 
+ gstencoding = library('gstencoding',
+diff --git a/gst/encoding/plugin.c b/gst/encoding/plugin.c
+new file mode 100644
+index 0000000..a333cc4
+--- /dev/null
++++ b/gst/encoding/plugin.c
+@@ -0,0 +1,51 @@
++/* GStreamer encoding bin
++ * Copyright (C) 2016 Jan Schmidt <jan@centricular.com>
++ *           (C) 2009 Edward Hervey <edward.hervey@collabora.co.uk>
++ *           (C) 2009 Nokia Corporation
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
++ * Boston, MA 02110-1301, USA.
++ */
++#ifdef HAVE_CONFIG_H
++#include "config.h"
++#endif
++
++#include <gst/gst.h>
++#include <gst/gst-i18n-plugin.h>
++
++#include "gstencodebin.h"
++
++static gboolean
++plugin_init (GstPlugin * plugin)
++{
++  gboolean res;
++
++#ifdef ENABLE_NLS
++  GST_DEBUG ("binding text domain %s to locale dir %s", GETTEXT_PACKAGE,
++      LOCALEDIR);
++  bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
++  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
++#endif /* ENABLE_NLS */
++
++  res = gst_element_register (plugin, "encodebin", GST_RANK_NONE,
++      GST_TYPE_ENCODE_BIN);
++  return res;
++}
++
++GST_PLUGIN_DEFINE (GST_VERSION_MAJOR,
++    GST_VERSION_MINOR,
++    encoding,
++    "various encoding-related elements", plugin_init, VERSION, GST_LICENSE,
++    GST_PACKAGE_NAME, GST_PACKAGE_ORIGIN)
