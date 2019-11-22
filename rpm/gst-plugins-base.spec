@@ -13,7 +13,6 @@ Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1
 Patch0:         0000-Move-encodebin-sources-to-encodebasebin.patch
 Patch1:         0001-encodebin-Split-implementation-into-a-base-class.patch
 Patch2:         0002-splitencodebin-Add-new-element.patch
-Patch3:         0003-neon-Define-missing-type.patch
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
@@ -67,7 +66,6 @@ GStreamer Plugins Base library applications
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
 
 %build
 
