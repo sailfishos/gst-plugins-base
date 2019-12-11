@@ -1,0 +1,26 @@
+From da2f70445e98468bb4a28f9a7f570894ac5b6966 Wed, 11 Dec 2019 11:25:59 +0100
+From: Andrew Branson <andrew.branson@jolla.com>
+Date: Wed, 11 Dec 2019 11:25:29 +0100
+Subject: [PATCH] [error] Provide friendly name for missing codec in error message. JB#47099
+
+diff --git a/gst/playback/gsturidecodebin.c b/gst/playback/gsturidecodebin.c
+index f19f69a..059b30a 100644
+--- a/gst/playback/gsturidecodebin.c
++++ b/gst/playback/gsturidecodebin.c
+@@ -38,6 +38,7 @@
+ #include <gst/gst.h>
+ #include <gst/gst-i18n-plugin.h>
+ #include <gst/pbutils/missing-plugins.h>
++#include <gst/pbutils/pbutils.h>
+ 
+ #include "gstplay-enum.h"
+ #include "gstrawcaps.h"
+@@ -918,7 +919,7 @@
+ 
+   capsstr = gst_caps_to_string (caps);
+   GST_ELEMENT_WARNING (decoder, STREAM, CODEC_NOT_FOUND,
+-      (_("No decoder available for type \'%s\'."), capsstr), (NULL));
++      (gst_pb_utils_get_codec_description(caps)), (NULL));
+   g_free (capsstr);
+ }
+ 
