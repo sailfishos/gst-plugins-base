@@ -33,7 +33,6 @@ BuildRequires: pkgconfig(zlib)
 BuildRequires: pkgconfig(libpng)
 BuildRequires: pkgconfig(libjpeg)
 BuildRequires: pkgconfig(pangocairo)
-BuildRequires: python
 BuildRequires: meson
 BuildRequires: gettext-devel
 
