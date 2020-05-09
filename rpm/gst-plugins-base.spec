@@ -3,10 +3,9 @@
 
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.16.1
+Version: 	1.16.2
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
-Group: 		Applications/Multimedia
 License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
 Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
@@ -46,7 +45,6 @@ plug-ins.
 
 %package devel
 Summary: 	GStreamer Plugin Library Headers
-Group: 		Development/Libraries
 Requires: 	%{gstreamer}1.0-plugins-base = %{version}
 
 %description devel
@@ -54,7 +52,6 @@ GStreamer Plugins Base library development and header files.
 
 %package apps
 Summary: 	GStreamer Plugin Library Headers
-Group: 		Applications/Multimedia
 Requires: 	%{gstreamer}1.0-plugins-base = %{version}
 
 %description apps
