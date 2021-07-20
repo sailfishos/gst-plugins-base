@@ -8,7 +8,8 @@ Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
-Source:         http://gstreamer.freedesktop.org/src/gst-plugins-base/gstreamer1.0-plugins-base-%{version}.tar.xz
+Source:	%{name}-%{version}.tar.xz
+Patch0:	gstgl-Fix-build-when-Meson-0.58.0rc1.patch
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
@@ -56,7 +57,7 @@ Requires: 	%{gstreamer}1.0-plugins-base = %{version}
 GStreamer Plugins Base library applications
 
 %prep
-%setup -q -n gstreamer1.0-plugins-base-%{version}/gst-plugins-base
+%autosetup -p1 -n gstreamer1.0-plugins-base-%{version}/gst-plugins-base
 
 %build
 
