@@ -3,7 +3,7 @@
 
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.18.4
+Version: 	1.18.5
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 License: 	LGPLv2+
