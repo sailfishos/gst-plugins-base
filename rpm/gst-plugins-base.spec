@@ -9,7 +9,6 @@ Summary: 	GStreamer streaming media framework base plug-ins
 License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
 Source:	%{name}-%{version}.tar.xz
-Patch0:	gstgl-Fix-build-when-Meson-0.58.0rc1.patch
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
