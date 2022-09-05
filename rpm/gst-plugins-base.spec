@@ -1,9 +1,11 @@
 %define majorminor  1.0
 %define gstreamer   gstreamer
 
+%global _vpath_srcdir subprojects/gst-plugins-base
+%global _vpath_builddir subprojects/gst-plugins-base/_build
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.18.5
+Version: 	1.20.3
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 License: 	LGPLv2+
@@ -56,7 +58,7 @@ Requires: 	%{gstreamer}1.0-plugins-base = %{version}
 GStreamer Plugins Base library applications
 
 %prep
-%autosetup -p1 -n gstreamer1.0-plugins-base-%{version}/gst-plugins-base
+%autosetup -p1 -n gstreamer1.0-plugins-base-%{version}/gstreamer
 
 %build
 
@@ -103,7 +105,7 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 
 %files
 %defattr(-, root, root)
-%license COPYING
+%license subprojects/gst-plugins-base/COPYING
 %{_libdir}/libgstallocators-%{majorminor}.so.*
 %{_libdir}/libgstapp-%{majorminor}.so.*
 %{_libdir}/libgstaudio-%{majorminor}.so.*
