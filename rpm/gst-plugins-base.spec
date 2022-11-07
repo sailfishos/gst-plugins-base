@@ -5,7 +5,7 @@
 %global _vpath_builddir subprojects/gst-plugins-base/_build
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.20.3
+Version: 	1.20.4
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 License: 	LGPLv2+
