@@ -5,12 +5,12 @@
 %global _vpath_builddir subprojects/gst-plugins-base/_build
 
 Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.20.4
+Version: 	1.22.4
 Release: 	1
 Summary: 	GStreamer streaming media framework base plug-ins
 License: 	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
-Source:	%{name}-%{version}.tar.xz
+Source:		%{name}-%{version}.tar.xz
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
@@ -140,9 +140,8 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/gstreamer-%{majorminor}/libgsttcp.so
 %{_libdir}/gstreamer-%{majorminor}/libgsttheora.so
 %{_libdir}/gstreamer-%{majorminor}/libgsttypefindfunctions.so
-%{_libdir}/gstreamer-%{majorminor}/libgstvideoconvert.so
+%{_libdir}/gstreamer-%{majorminor}/libgstvideoconvertscale.so
 %{_libdir}/gstreamer-%{majorminor}/libgstvideorate.so
-%{_libdir}/gstreamer-%{majorminor}/libgstvideoscale.so
 %{_libdir}/gstreamer-%{majorminor}/libgstvideotestsrc.so
 %{_libdir}/gstreamer-%{majorminor}/libgstvolume.so
 %{_libdir}/gstreamer-%{majorminor}/libgstvorbis.so
