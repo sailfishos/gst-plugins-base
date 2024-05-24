@@ -4,11 +4,11 @@
 %global _vpath_srcdir subprojects/gst-plugins-base
 %global _vpath_builddir subprojects/gst-plugins-base/_build
 
-Name: 		%{gstreamer}%{majorminor}-plugins-base
-Version: 	1.22.10
-Release: 	1
-Summary: 	GStreamer streaming media framework base plug-ins
-License: 	LGPLv2+
+Name:		%{gstreamer}%{majorminor}-plugins-base
+Version:	1.24.3
+Release:	1
+Summary:	GStreamer streaming media framework base plug-ins
+License:	LGPLv2+
 URL:		http://gstreamer.freedesktop.org/
 Source:		%{name}-%{version}.tar.xz
 
@@ -44,15 +44,15 @@ types or processing capabilities can be added simply by installing new
 plug-ins.
 
 %package devel
-Summary: 	GStreamer Plugin Library Headers
-Requires: 	%{gstreamer}1.0-plugins-base = %{version}
+Summary:	GStreamer Plugin Library Headers
+Requires:	%{gstreamer}1.0-plugins-base = %{version}
 
 %description devel
 GStreamer Plugins Base library development and header files.
 
 %package apps
-Summary: 	GStreamer Plugins Base library applications
-Requires: 	%{gstreamer}1.0-plugins-base = %{version}
+Summary:	GStreamer Plugins Base library applications
+Requires:	%{gstreamer}1.0-plugins-base = %{version}
 
 %description apps
 GStreamer Plugins Base library applications
@@ -66,7 +66,9 @@ GStreamer Plugins Base library applications
   -Dpackage-name='SailfishOS GStreamer package plugins (base set)' \
   -Dpackage-origin='http://sailfishos.org/' \
   -Dexamples=disabled \
+  -Ddebugutils=disabled \
   -Ddoc=disabled \
+  -Ddsd=disabled \
   -Dintrospection=enabled \
   -Dorc=enabled \
   -Dopus=enabled \
@@ -104,7 +106,6 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %postun devel -p /sbin/ldconfig
 
 %files
-%defattr(-, root, root)
 %license subprojects/gst-plugins-base/COPYING
 %{_libdir}/libgstallocators-%{majorminor}.so.*
 %{_libdir}/libgstapp-%{majorminor}.so.*
@@ -159,7 +160,6 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_libdir}/girepository-1.0/GstVideo-1.0.typelib
 
 %files devel
-%defattr(-, root, root)
 %{_includedir}/gstreamer-%{majorminor}/gst/allocators/*.h
 %{_includedir}/gstreamer-%{majorminor}/gst/app/*.h
 %{_includedir}/gstreamer-%{majorminor}/gst/audio/*.h
@@ -218,7 +218,6 @@ rm -fr $RPM_BUILD_ROOT%{_mandir}
 %{_datadir}/gir-1.0/GstVideo-1.0.gir
 
 %files apps
-%defattr(-, root, root)
 %{_bindir}/gst-device-monitor-%{majorminor}
 %{_bindir}/gst-discoverer-%{majorminor}
 %{_bindir}/gst-play-%{majorminor}
