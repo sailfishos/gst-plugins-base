@@ -5,16 +5,17 @@
 %global _vpath_builddir subprojects/gst-plugins-base/_build
 
 Name:		%{gstreamer}%{majorminor}-plugins-base
-Version:	1.24.10
+Version:	1.26.2
 Release:	1
 Summary:	GStreamer streaming media framework base plug-ins
 License:	LGPLv2+
-URL:		http://gstreamer.freedesktop.org/
+URL:		https://github.com/sailfishos/gst-plugins-base
 Source:		%{name}-%{version}.tar.xz
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
 Requires:      orc >= 0.4.18
+BuildRequires: libatomic
 BuildRequires: pkgconfig(gstreamer-1.0) >= %{sonamever}
 BuildRequires: gstreamer1.0-tools
 BuildRequires: pkgconfig(orc-0.4) >= 0.4.18
@@ -65,26 +66,27 @@ GStreamer Plugins Base library applications
 %meson \
   -Dpackage-name='SailfishOS GStreamer package plugins (base set)' \
   -Dpackage-origin='http://sailfishos.org/' \
-  -Dexamples=disabled \
+  -Dalsa=disabled \
+  -Dcdparanoia=disabled \
   -Ddebugutils=disabled \
   -Ddoc=disabled \
   -Ddsd=disabled \
-  -Dintrospection=enabled \
-  -Dorc=enabled \
-  -Dopus=enabled \
+  -Dexamples=disabled \
   -Dgl=enabled \
   -Dgl_api=gles2 \
+  -Dgl-graphene=disabled \
   -Dgl_platform=egl \
   -Dgl_winsys=wayland \
-  -Dnls=disabled \
-  -Dalsa=disabled \
-  -Dx11=disabled \
-  -Dxvideo=disabled \
-  -Dxshm=disabled \
-  -Dcdparanoia=disabled \
+  -Dintrospection=enabled \
   -Dlibvisual=disabled \
-  -Dgl-graphene=disabled \
-  -Dtremor=disabled
+  -Dnls=disabled \
+  -Dopus=enabled \
+  -Dorc=enabled \
+  -Dtremor=disabled \
+  -Dx11=disabled \
+  -Dxi=disabled \
+  -Dxshm=disabled \
+  -Dxvideo=disabled
 
 %meson_build
 
