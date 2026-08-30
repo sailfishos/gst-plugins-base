@@ -1,5 +1,15 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Szczepaniak?= <m.szczepaniak.000@gmail.com>
+Date: Mon, 31 Aug 2026 18:36:57 +0300
+Subject: [PATCH] gst-plugins-base: gl: wayland: Allow lower wl_seat interface
+ version
+
+---
+ .../gst-libs/gst/gl/wayland/gstglwindow_wayland_egl.c           | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/subprojects/gst-plugins-base/gst-libs/gst/gl/wayland/gstglwindow_wayland_egl.c b/subprojects/gst-plugins-base/gst-libs/gst/gl/wayland/gstglwindow_wayland_egl.c
-index 9883c2fa26..8f72701af5 100644
+index d5f498b360befdddc4adf1dc23c770af39f4ae1b..d69ac0e0483ae7b8553ba3ddfe93bdbb57b911b0 100644
 --- a/subprojects/gst-plugins-base/gst-libs/gst/gl/wayland/gstglwindow_wayland_egl.c
 +++ b/subprojects/gst-plugins-base/gst-libs/gst/gl/wayland/gstglwindow_wayland_egl.c
 @@ -544,7 +544,7 @@ registry_handle_global (void *data, struct wl_registry *registry,
