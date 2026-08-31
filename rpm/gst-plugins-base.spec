@@ -11,6 +11,7 @@ Summary:	GStreamer streaming media framework base plug-ins
 License:	LGPLv2+
 URL:		https://github.com/sailfishos/gst-plugins-base
 Source:		%{name}-%{version}.tar.xz
+Patch0:     0004-fix-wayland-seat-version.patch
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
