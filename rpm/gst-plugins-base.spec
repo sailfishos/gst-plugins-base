@@ -5,13 +5,13 @@
 %global _vpath_builddir subprojects/gst-plugins-base/_build
 
 Name:		%{gstreamer}%{majorminor}-plugins-base
-Version:	1.26.11
+Version:	1.28.6
 Release:	1
 Summary:	GStreamer streaming media framework base plug-ins
 License:	LGPLv2+
 URL:		https://github.com/sailfishos/gst-plugins-base
 Source:		%{name}-%{version}.tar.xz
-Patch0:     0004-fix-wayland-seat-version.patch
+Patch0:		0001-gst-plugins-base-gl-wayland-Allow-lower-wl_seat-inte.patch
 
 %define sonamever %(echo %{version} | cut -d '+' -f 1)
 
