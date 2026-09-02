@@ -1,0 +1,75 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Szczepaniak?= <m.szczepaniak.000@gmail.com>
+Date: Wed, 2 Sep 2026 17:39:21 +0200
+Subject: [PATCH] gl: rebuild the cached GL context when the app context is
+ replaced
+
+gst_gl_base_filter_set_context() only rebuilt filter->context when the
+GstGLDisplay changed.  A "gst.gl.app_context" push refreshes
+priv->other_context and leaves the now-stale filter->context in place, so
+the element keeps rendering into a context the application has replaced.
+
+Rebuild when an already-established other_context is replaced too.  The
+guard on the old one being non-NULL keeps ordinary startup out: the first
+application context arrives on this same old_display == new_display path,
+and rebuilding there calls gl_start() before caps have been negotiated,
+which GstGLColorBalance rejects with "Unsupported GstGLTextureTarget
+value: 0".
+
+This cannot key on filter->in_caps/out_caps instead, tempting as that is as
+a statement of the real precondition: GstGLUploadElement overrides
+GstBaseTransform::set_caps without chaining up to GstGLBaseFilter, so its
+in_caps/out_caps are always NULL and it would never rebuild - leaving
+glupload feeding old-context memory to a glcolorconvert that has moved to
+the new one, which fails the buffer with "input memory OpenGL context is
+different" and errors out the pipeline.
+
+Needed so glupload/glcolorconvert pick up a rewrapped GstGLContext through
+the standard gst_element_set_context() propagation, rather than only on the
+next caps change - e.g. after a Qt-based video sink notices the windowing
+system silently swapped the underlying native GL context, such as across a
+display blank/unblank cycle on SailfishOS.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+diff --git a/subprojects/gst-plugins-base/gst-libs/gst/gl/gstglbasefilter.c b/subprojects/gst-plugins-base/gst-libs/gst/gl/gstglbasefilter.c
+index cfdb551d79..774d618e3c 100644
+--- a/subprojects/gst-plugins-base/gst-libs/gst/gl/gstglbasefilter.c
++++ b/subprojects/gst-plugins-base/gst-libs/gst/gl/gstglbasefilter.c
+@@ -512,9 +512,12 @@ gst_gl_base_filter_set_context (GstElement * element, GstContext * context)
+   GstGLBaseFilter *filter = GST_GL_BASE_FILTER (element);
+   GstGLBaseFilterClass *filter_class = GST_GL_BASE_FILTER_GET_CLASS (filter);
+   GstGLDisplay *old_display, *new_display;
++  GstGLContext *old_other_context;
+ 
+   g_rec_mutex_lock (&filter->priv->context_lock);
+   old_display = filter->display ? gst_object_ref (filter->display) : NULL;
++  old_other_context = filter->priv->other_context ?
++      gst_object_ref (filter->priv->other_context) : NULL;
+   gst_gl_handle_set_context (element, context, &filter->display,
+       &filter->priv->other_context);
+   if (filter->display)
+@@ -523,7 +526,12 @@ gst_gl_base_filter_set_context (GstElement * element, GstContext * context)
+   new_display = filter->display ? gst_object_ref (filter->display) : NULL;
+ 
+   if (old_display && new_display) {
+-    if (old_display != new_display) {
++    /* a replaced app context on the same display leaves filter->context stale.
++     * The first one an element receives is not a replacement, and rebuilding
++     * on it would run gl_start() before caps have been negotiated. */
++    if (old_display != new_display
++        || (old_other_context != NULL
++            && old_other_context != filter->priv->other_context)) {
+       gst_clear_object (&filter->context);
+       if (gst_gl_base_filter_find_gl_context_unlocked (filter)) {
+         if (filter->in_caps && filter->out_caps) {
+@@ -535,6 +543,7 @@ gst_gl_base_filter_set_context (GstElement * element, GstContext * context)
+   g_rec_mutex_unlock (&filter->priv->context_lock);
+   gst_clear_object (&old_display);
+   gst_clear_object (&new_display);
++  gst_clear_object (&old_other_context);
+ 
+   GST_ELEMENT_CLASS (parent_class)->set_context (element, context);
+ }
+-- 
+2.48.1
